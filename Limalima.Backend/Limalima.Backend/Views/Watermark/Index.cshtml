@@ -1,3 +1,22 @@
-﻿@{
+﻿@model Microsoft.AspNetCore.Http.IFormFile;
+
+@{
     ViewData["Title"] = "Watermark";
 }
+
+
+<div>
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <div class="col-md-10">
+                <p>Prześlij jedno lub więcej zdjęć: </p>
+                <input type="file" name="files" multiple/>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-10">
+                <input type="submit" asp-action="Upload" value="Prześlij" />
+            </div>
+        </div>
+    </form>
+</div>
