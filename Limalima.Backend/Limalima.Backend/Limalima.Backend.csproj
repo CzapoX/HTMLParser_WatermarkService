@@ -6,19 +6,18 @@
 
   <ItemGroup>
     <Compile Remove="DrawWaterMarkOnImage\**" />
+    <Compile Remove="Images\Temp\**" />
     <Content Remove="DrawWaterMarkOnImage\**" />
+    <Content Remove="Images\Temp\**" />
     <EmbeddedResource Remove="DrawWaterMarkOnImage\**" />
+    <EmbeddedResource Remove="Images\Temp\**" />
     <None Remove="DrawWaterMarkOnImage\**" />
+    <None Remove="Images\Temp\**" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="7.22.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="3.1.9" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Images\Temp\" />
   </ItemGroup>
 
 </Project>

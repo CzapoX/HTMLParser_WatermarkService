@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using ImageMagick;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SixLabors.ImageSharp;
 
 namespace Limalima.Backend.Controllers
 {
@@ -40,10 +37,10 @@ namespace Limalima.Backend.Controllers
                     {
                         using (var image = new MagickImage(stream))
                         {
-                            using (var watermark = new MagickImage(@"D:\praktyki\limalima-up2020\Limalima.Backend\Limalima.Backend\Images\logo.png"))
-                            { 
-                               // Draw the watermark in the bottom right corner
-                               image.Composite(watermark, Gravity.Southeast, CompositeOperator.Over);
+                            using (var watermark = new MagickImage(Directory.GetCurrentDirectory() + "/Images/logo.png"))
+                            {
+                                // Draw the watermark in the bottom right corner
+                                image.Composite(watermark, Gravity.Southeast, CompositeOperator.Over);
                             }
                             image.Write(filePath);
                         }
