@@ -1,3 +1,4 @@
+using Limalima.Backend.Validation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +19,8 @@ namespace Limalima.Backend
         {
             var mvc = services.AddControllersWithViews();
             mvc.AddRazorRuntimeCompilation();
+
+            services.AddScoped<IImageValidator, ImageValidator>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

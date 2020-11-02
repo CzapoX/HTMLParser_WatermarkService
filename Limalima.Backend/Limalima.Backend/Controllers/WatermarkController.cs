@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using ImageMagick;
+using Limalima.Backend.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,13 @@ namespace Limalima.Backend.Controllers
 {
     public class WatermarkController : Controller
     {
+        private readonly IImageValidator imageValidator;
+
+        public WatermarkController(IImageValidator imageValidator)
+        {
+            this.imageValidator = imageValidator;
+        }
+
         public IActionResult Index()
         {
             return View();
@@ -17,7 +25,9 @@ namespace Limalima.Backend.Controllers
         [HttpPost]
         public IActionResult Upload(List<IFormFile> files)
         {
-            long size = files.Sum(f => f.Length);
+
+            long size = 0;
+            int count = 0;
 
             string folderPath = Directory.GetCurrentDirectory() + "/Images/Temp";
             if (!System.IO.Directory.Exists(folderPath))
@@ -27,7 +37,7 @@ namespace Limalima.Backend.Controllers
 
             foreach (var formFile in files)
             {
-                if (formFile.Length > 0)
+                if (formFile.Length > 0 && imageValidator.ValidateFile(formFile))
                 {
                     var fileName = Path.GetRandomFileName();
                     var filePath = Path.Combine(folderPath,
@@ -45,9 +55,11 @@ namespace Limalima.Backend.Controllers
                             image.Write(filePath);
                         }
                     }
+                    count++;
+                    size += formFile.Length;
                 }
             }
-            return Ok(new { count = files.Count, size });
+            return Ok(new { count , size });
         }
     }
 }
