@@ -41,7 +41,7 @@ namespace Limalima.Backend.Controllers
         public IActionResult AddNew(AnnouceViewModel model)
         {
             var files = Directory.GetFiles(tempImagesFolder, model.ImageTempId + "*");
-       
+
             foreach (var fileDirectory in files)
             {
                 using (var image = new MagickImage(fileDirectory))
@@ -61,23 +61,23 @@ namespace Limalima.Backend.Controllers
             return Redirect("/");
         }
 
-
-
         //wywolywane przez jquery ajax
         [HttpPost]
-        public async Task<IActionResult> UploadAjax(FileUploadViewModel model) //zmienic na ViewModel
+        public async Task<IActionResult> UploadAjax(FileUploadViewModel model)
         {
+            if (model.File == null)
+                return BadRequest();
+            if (!imageValidator.ValidateFile(model.File))
+                return BadRequest();
+
             //zapis w temp pod nazwa pliku model.ImageTempId+"_xxx_+".jpg
             string filename = model.ImageTempId + "_" + Guid.NewGuid() + "." + Path.GetExtension(model.File.FileName);
             string tempFilename = Path.Combine(tempImagesFolder, filename);
 
-
-            if (model.File.Length > 0 && imageValidator.ValidateFile(model.File))
-                using (var stream = System.IO.File.Create(tempFilename))
-                {
-                    await model.File.CopyToAsync(stream);
-                }
-
+            using (var stream = System.IO.File.Create(tempFilename))
+            {
+                await model.File.CopyToAsync(stream);
+            }
             return Ok();
         }
     }

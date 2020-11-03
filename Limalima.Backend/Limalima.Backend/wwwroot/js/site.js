@@ -6,32 +6,32 @@
 
 $("#button-upload0").click(function (event) {
     var formData = new FormData($("#form-upload0").get(0));
-    Post(event, formData);
+    PostImage(event, formData);
 });
 
 $("#button-upload1").click(function (event) {
     var formData = new FormData($("#form-upload1").get(0));
-    Post(event, formData);
+    PostImage(event, formData);
 });
 
 $("#button-upload2").click(function (event) {
     var formData = new FormData($("#form-upload2").get(0));
-    Post(event, formData);
+    PostImage(event, formData);
 });
 
 $("#button-upload3").click(function (event) {
     var formData = new FormData($("#form-upload3").get(0));
-    Post(event, formData);
+    PostImage(event, formData);
 });
 
 $("#button-upload4").click(function (event) {
     var formData = new FormData($("#form-upload4").get(0));
-    Post(event, formData);
+    PostImage(event, formData);
 });
 
 $("#button-upload5").click(function (event) {
     var formData = new FormData($("#form-upload5").get(0));
-    Post(event, formData);
+    PostImage(event, formData);
 });
 
 function PostImage(event, formData) {
@@ -47,7 +47,6 @@ function PostImage(event, formData) {
     }).done(function (response) {
         $("#button-add-photos").attr("disabled", false);
     }).fail(function () {
-        // Here you should treat the http errors (e.g., 403, 404)
-    }).always(function () {
-    });
+        alert('File not uploaded');
+    })
 }
