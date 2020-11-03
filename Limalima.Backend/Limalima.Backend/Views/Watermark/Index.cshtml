@@ -1,20 +1,31 @@
-﻿@{
+﻿@model AnnouceViewModel
+
+@{
     ViewData["Title"] = "Watermark";
 }
 
-
-<div>
-    <form method="post" enctype="multipart/form-data">
+@for (int i = 0; i < 5; i++)
+{
+    <form method="POST" id="@("form-upload" + i)" enctype="multipart/form-data">
+        <input type="hidden" asp-for="ImageTempId" />
         <div class="form-group">
             <div class="col-md-10">
                 <p>Prześlij jedno lub więcej zdjęć: </p>
-                <input type="file" name="files" multiple/>
+                <input type="file" id="@("file" + i)" name="file" />
             </div>
         </div>
-        <div class="form-group">
-            <div class="col-md-10">
-                <input type="submit" asp-action="Upload" value="Prześlij" />
-            </div>
+
+        <div class="btn-group-vertical">
+            <input type="submit" id="@("button-upload" + i)" value="Przeslij zdjecie" style="margin-bottom: 10px" />
+
+            @if (i == 4)
+            {
+                <input type="submit" asp-action="AddNew" id="button-add-photos" value="Dodaj zdjęcia" disabled />
+            }
+
         </div>
     </form>
-</div>
+}
+
+
+

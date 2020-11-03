@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Threading.Tasks;
 using ImageMagick;
+using Limalima.Backend.Models;
 using Limalima.Backend.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +14,21 @@ namespace Limalima.Backend.Controllers
     {
         private readonly IImageValidator imageValidator;
 
+        private static readonly string tempImagesFolder = Path.Combine(Path.GetTempPath(), "FrutilsImagesTemp");
+        private static readonly string watermarkedImagesFolderPath = Directory.GetCurrentDirectory() + "/Images/Temp";
+
+        static WatermarkController()
+        {
+            if (!Directory.Exists(tempImagesFolder))
+            {
+                Directory.CreateDirectory(tempImagesFolder);
+            }
+            if (!Directory.Exists(watermarkedImagesFolderPath))
+            {
+                Directory.CreateDirectory(watermarkedImagesFolderPath);
+            }
+        }
+
         public WatermarkController(IImageValidator imageValidator)
         {
             this.imageValidator = imageValidator;
@@ -19,49 +36,51 @@ namespace Limalima.Backend.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            return View(new AnnouceViewModel { ImageTempId = Guid.NewGuid() });
         }
 
         [HttpPost]
-        public IActionResult Upload(List<IFormFile> files)
+        public IActionResult AddNew(AnnouceViewModel model)
         {
-
-            long size = 0;
-            int count = 0;
-
-            string folderPath = Directory.GetCurrentDirectory() + "/Images/Temp";
-            if (!System.IO.Directory.Exists(folderPath))
+            var files = Directory.GetFiles(tempImagesFolder, model.ImageTempId + "*");
+       
+            foreach (var fileDirectory in files)
             {
-                Directory.CreateDirectory(folderPath);
-            }
-
-            foreach (var formFile in files)
-            {
-                if (formFile.Length > 0 && imageValidator.ValidateFile(formFile))
+                using (var image = new MagickImage(fileDirectory))
                 {
-                    var fileName = Path.GetRandomFileName();
-                    var filePath = Path.Combine(folderPath,
+                    var fileName = Guid.NewGuid() + "." + Path.GetExtension(fileDirectory);
+                    var filePath = Path.Combine(watermarkedImagesFolderPath,
                          fileName);
 
-                    using (Stream stream = formFile.OpenReadStream())
+                    using (var watermark = new MagickImage(Directory.GetCurrentDirectory() + "/Images/logo.png"))
                     {
-                        using (var image = new MagickImage(stream))
-                        {
-                            using (var watermark = new MagickImage(Directory.GetCurrentDirectory() + "/Images/logo.png"))
-                            {
-                                // Draw the watermark in the bottom right corner
-                                image.Composite(watermark, Gravity.Southeast, CompositeOperator.Over);
-                            }
-                            image.Write(filePath);
-                        }
+                        // Draw the watermark in the bottom right corner
+                        image.Composite(watermark, Gravity.Southeast, CompositeOperator.Over);
                     }
-                    count++;
-                    size += formFile.Length;
+                    image.Write(filePath);
                 }
             }
-            return Ok(new { count , size });
+            return Redirect("/");
+        }
+
+
+
+        //wywolywane przez jquery ajax
+        [HttpPost]
+        public async Task<IActionResult> UploadAjax(FileUploadViewModel model) //zmienic na ViewModel
+        {
+            //zapis w temp pod nazwa pliku model.ImageTempId+"_xxx_+".jpg
+            string filename = model.ImageTempId + "_" + Guid.NewGuid() + "." + Path.GetExtension(model.File.FileName);
+            string tempFilename = Path.Combine(tempImagesFolder, filename);
+
+
+            if (model.File.Length > 0 && imageValidator.ValidateFile(model.File))
+                using (var stream = System.IO.File.Create(tempFilename))
+                {
+                    await model.File.CopyToAsync(stream);
+                }
+
+            return Ok();
         }
     }
 }
-
-

@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Limalima.Backend.Validation
 {
@@ -71,20 +69,18 @@ namespace Limalima.Backend.Validation
             }
         }
 
-        private bool CheckSize(IFormFile formFile)
+        private bool CheckMaxFileSize(IFormFile formFile)
         {
-            if (formFile.Length > _fileSizeLimit)
-                return false;
-            return true;
+            return (formFile.Length <= _fileSizeLimit);
         }
 
         public bool ValidateFile(IFormFile formFile)
         {
             return (
             CheckFileExtension(formFile) &&
-            CheckSize(formFile) &&
+            CheckMaxFileSize(formFile) &&
             CheckFileSignature(formFile)
             );
         }
     }
-    }
+}

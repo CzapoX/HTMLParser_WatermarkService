@@ -20,7 +20,7 @@ namespace Limalima.Backend
             var mvc = services.AddControllersWithViews();
             mvc.AddRazorRuntimeCompilation();
 
-            services.AddScoped<IImageValidator, ImageValidator>();
+            services.AddSingleton<IImageValidator, ImageValidator>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
