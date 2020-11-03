@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using ImageMagick;
 using Limalima.Backend.Models;
 using Limalima.Backend.Validation;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Limalima.Backend.Controllers

@@ -1,5 +1,3 @@
-using System;
-
 namespace Limalima.Backend.Models
 {
     public class ErrorViewModel

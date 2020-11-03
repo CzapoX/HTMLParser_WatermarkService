@@ -34,7 +34,7 @@ $("#button-upload5").click(function (event) {
     Post(event, formData);
 });
 
-function Post(event, formData) {
+function PostImage(event, formData) {
     event.preventDefault();
     $.ajax({
         url: "Watermark/UploadAjax",
