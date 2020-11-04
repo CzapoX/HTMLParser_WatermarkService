@@ -4,7 +4,7 @@
     ViewData["Title"] = "Watermark";
 }
 
-@for (int i = 0; i < 5; i++)
+@for (int i = 0; i < 10; i++)
 {
     <form method="POST" id="@("form-upload" + i)" enctype="multipart/form-data">
         <input type="hidden" asp-for="ImageTempId" />
@@ -18,7 +18,7 @@
         <div class="btn-group-vertical">
             <input type="submit" id="@("button-upload" + i)" value="Przeslij zdjecie" style="margin-bottom: 10px" />
 
-            @if (i == 4)
+            @if (i == 9)
             {
                 <input type="submit" asp-action="AddNew" id="button-add-photos" value="Dodaj zdjęcia" disabled />
             }
@@ -26,6 +26,3 @@
         </div>
     </form>
 }
-
-
-

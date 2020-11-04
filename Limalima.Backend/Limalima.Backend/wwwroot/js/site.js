@@ -4,35 +4,12 @@
 // Write your JavaScript code.
 
 
-$("#button-upload0").click(function (event) {
-    var formData = new FormData($("#form-upload0").get(0));
-    PostImage(event, formData);
-});
-
-$("#button-upload1").click(function (event) {
-    var formData = new FormData($("#form-upload1").get(0));
-    PostImage(event, formData);
-});
-
-$("#button-upload2").click(function (event) {
-    var formData = new FormData($("#form-upload2").get(0));
-    PostImage(event, formData);
-});
-
-$("#button-upload3").click(function (event) {
-    var formData = new FormData($("#form-upload3").get(0));
-    PostImage(event, formData);
-});
-
-$("#button-upload4").click(function (event) {
-    var formData = new FormData($("#form-upload4").get(0));
-    PostImage(event, formData);
-});
-
-$("#button-upload5").click(function (event) {
-    var formData = new FormData($("#form-upload5").get(0));
-    PostImage(event, formData);
-});
+for (let i = 0; i < 10; i++) {
+    $("#button-upload" + i).click(function (event) {
+        let formData = new FormData($("#form-upload" + i).get(0));
+        PostImage(event, formData);
+    });
+}
 
 function PostImage(event, formData) {
     event.preventDefault();

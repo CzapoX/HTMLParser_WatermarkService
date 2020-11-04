@@ -46,11 +46,8 @@ namespace Limalima.Backend.Validation
             string[] permittedExtensions = { ".png", ".jpg", ".jpeg" };
             var ext = Path.GetExtension(formFile.FileName).ToLowerInvariant();
 
-            if (string.IsNullOrEmpty(ext) || !permittedExtensions.Contains(ext))
-            {
-                return false;
-            }
-            return true;
+            return !(string.IsNullOrEmpty(ext) || !permittedExtensions.Contains(ext));
+
         }
 
         private bool CheckFileSignature(IFormFile formFile)
@@ -61,11 +58,9 @@ namespace Limalima.Backend.Validation
                 var signatures = _fileSignature[ext];
                 var headerBytes = reader.ReadBytes(signatures.Max(m => m.Length));
 
-                if (!signatures.Any(signature =>
-                    headerBytes.Take(signature.Length).SequenceEqual(signature)))
-                    return false;
-
-                return true;
+                return (signatures.Any(signature => headerBytes
+                    .Take(signature.Length)
+                    .SequenceEqual(signature)));
             }
         }
 
@@ -76,11 +71,9 @@ namespace Limalima.Backend.Validation
 
         public bool ValidateFile(IFormFile formFile)
         {
-            return (
-            CheckFileExtension(formFile) &&
-            CheckMaxFileSize(formFile) &&
-            CheckFileSignature(formFile)
-            );
+            return (CheckFileExtension(formFile) &&
+                CheckMaxFileSize(formFile) &&
+                CheckFileSignature(formFile));
         }
     }
 }
