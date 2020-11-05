@@ -44,19 +44,17 @@ namespace Limalima.Backend.Controllers
 
             foreach (var fileDirectory in files)
             {
-                using (var image = new MagickImage(fileDirectory))
-                {
-                    var fileName = Guid.NewGuid() + "." + Path.GetExtension(fileDirectory);
-                    var filePath = Path.Combine(watermarkedImagesFolderPath,
-                         fileName);
+                using var image = new MagickImage(fileDirectory);
+                var fileName = Guid.NewGuid() + "." + Path.GetExtension(fileDirectory);
+                var filePath = Path.Combine(watermarkedImagesFolderPath,
+                     fileName);
 
-                    using (var watermark = new MagickImage(Directory.GetCurrentDirectory() + "/Images/logo.png"))
-                    {
-                        // Draw the watermark in the bottom right corner
-                        image.Composite(watermark, Gravity.Southeast, CompositeOperator.Over);
-                    }
-                    image.Write(filePath);
+                using (var watermark = new MagickImage(Directory.GetCurrentDirectory() + "/Images/logo.png"))
+                {
+                    // Draw the watermark in the bottom right corner
+                    image.Composite(watermark, Gravity.Southeast, CompositeOperator.Over);
                 }
+                image.Write(filePath);
             }
             return Redirect("/");
         }

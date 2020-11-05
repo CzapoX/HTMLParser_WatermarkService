@@ -52,16 +52,14 @@ namespace Limalima.Backend.Validation
 
         private bool CheckFileSignature(IFormFile formFile)
         {
-            using (var reader = new BinaryReader(formFile.OpenReadStream()))
-            {
-                var ext = Path.GetExtension(formFile.FileName).ToLowerInvariant();
-                var signatures = _fileSignature[ext];
-                var headerBytes = reader.ReadBytes(signatures.Max(m => m.Length));
+            using var reader = new BinaryReader(formFile.OpenReadStream());
+            var ext = Path.GetExtension(formFile.FileName).ToLowerInvariant();
+            var signatures = _fileSignature[ext];
+            var headerBytes = reader.ReadBytes(signatures.Max(m => m.Length));
 
-                return (signatures.Any(signature => headerBytes
-                    .Take(signature.Length)
-                    .SequenceEqual(signature)));
-            }
+            return (signatures.Any(signature => headerBytes
+                .Take(signature.Length)
+                .SequenceEqual(signature)));
         }
 
         private bool CheckMaxFileSize(IFormFile formFile)

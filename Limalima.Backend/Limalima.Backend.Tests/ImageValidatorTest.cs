@@ -13,8 +13,8 @@ namespace Limalima.Backend.Tests
     public class ImageValidatorTest
     {
 
-        private IConfiguration configuration;
-        private IImageValidator imageValidator;
+        private readonly IConfiguration configuration;
+        private readonly IImageValidator imageValidator;
 
         private static readonly string imageMockDirectory =
             Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "MockFiles", "MockImage.jpg");
@@ -32,7 +32,7 @@ namespace Limalima.Backend.Tests
                 new object[] {emptyJpgFile}
         };
 
-        private Dictionary<string, string> configurationSettings = new Dictionary<string, string>
+        private readonly Dictionary<string, string> configurationSettings = new Dictionary<string, string>
         {
                 {"FileSizeLimit", "5097152"},
         };
