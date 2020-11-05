@@ -1,5 +1,4 @@
 ﻿using Limalima.Backend.Validation;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Moq;
@@ -16,22 +15,6 @@ namespace Limalima.Backend.Tests
         private readonly IConfiguration configuration;
         private readonly IImageValidator imageValidator;
 
-        private static readonly string imageMockDirectory =
-            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "MockFiles", "MockImage.jpg");
-        private static readonly string pdfFile =
-            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "MockFiles", "MockPdf.pdf");
-        private static readonly string txtFile =
-            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "MockFiles", "MockTxt.txt");
-        private static readonly string emptyJpgFile =
-            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "MockFiles", "MockEmptyJpg.jpg");
-
-        public static readonly List<object[]> wrongFilesDirectory = new List<object[]>
-        {
-                new object[] {pdfFile},
-                new object[] {txtFile},
-                new object[] {emptyJpgFile}
-        };
-
         private readonly Dictionary<string, string> configurationSettings = new Dictionary<string, string>
         {
                 {"FileSizeLimit", "5097152"},
@@ -46,23 +29,23 @@ namespace Limalima.Backend.Tests
             imageValidator = new ImageValidator(configuration);
         }
 
-
         [Fact]
         public void ForGoodFileValidationShouldPass()
         {
-            IFormFile mockFile = GetMockFile(imageMockDirectory);
+            IFormFile mockFile = GetMockFile(GetPath("MockImage.jpg"));
 
             bool retval = ValidateFile(mockFile);
 
             Assert.True(retval);
         }
 
-
         [Theory]
-        [MemberData(nameof(wrongFilesDirectory))]
-        public void ForWrongFileValidationShouldPass(string fileDirectory)
+        [InlineData("MockPdf.pdf")]
+        [InlineData("MockTxt.txt")]
+        [InlineData("MockEmptyJpg.jpg")]
+        public void ForWrongFileValidationShouldPass(string file)
         {
-            IFormFile mockFile = GetMockFile(fileDirectory);
+            IFormFile mockFile = GetMockFile(GetPath(file));
 
             bool retval = ValidateFile(mockFile);
 
@@ -88,6 +71,10 @@ namespace Limalima.Backend.Tests
         private bool ValidateFile(IFormFile mockFile)
         {
             return imageValidator.ValidateFile(mockFile);
+        }
+        private string GetPath(string file)
+        {
+            return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "MockFiles", file);
         }
     }
 }

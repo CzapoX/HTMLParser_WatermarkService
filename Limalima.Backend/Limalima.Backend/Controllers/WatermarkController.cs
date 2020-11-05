@@ -1,8 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
-using ImageMagick;
-using Limalima.Backend.Azure;
+using Limalima.Backend.Components;
 using Limalima.Backend.Models;
 using Limalima.Backend.Validation;
 using Microsoft.AspNetCore.Mvc;
@@ -12,27 +10,12 @@ namespace Limalima.Backend.Controllers
     public class WatermarkController : Controller
     {
         private readonly IImageValidator _imageValidator;
-        private readonly IAzureImageUploadComponent _azureImageUpload;
+        private readonly IWatermarkService _watermarkService;
 
-        private static readonly string tempImagesFolder = Path.Combine(Path.GetTempPath(), "FrutilsImagesTemp");
-        private static readonly string watermarkedImagesFolderPath = Directory.GetCurrentDirectory() + "/Images/Temp";
-
-        static WatermarkController()
+        public WatermarkController(IWatermarkService watermarkService, IImageValidator imageValidator)
         {
-            if (!Directory.Exists(tempImagesFolder))
-            {
-                Directory.CreateDirectory(tempImagesFolder);
-            }
-            if (!Directory.Exists(watermarkedImagesFolderPath))
-            {
-                Directory.CreateDirectory(watermarkedImagesFolderPath);
-            }
-        }
-
-        public WatermarkController(IImageValidator imageValidator, IAzureImageUploadComponent azureImageUpload)
-        {
+            _watermarkService = watermarkService;
             _imageValidator = imageValidator;
-            _azureImageUpload = azureImageUpload;
         }
 
         public IActionResult Index()
@@ -43,26 +26,15 @@ namespace Limalima.Backend.Controllers
         [HttpPost]
         public async Task<IActionResult> AddNew(AnnouceViewModel model)
         {
-            var files = Directory.GetFiles(tempImagesFolder, model.ImageTempId + "*");
+            string[] files = _watermarkService.GetFiles(model);
 
             foreach (var fileDirectory in files)
             {
-                using var image = new MagickImage(fileDirectory);
-                var fileName = Guid.NewGuid() + Path.GetExtension(fileDirectory);
-                var filePath = Path.Combine(watermarkedImagesFolderPath,
-                     fileName);
-
-                using (var watermark = new MagickImage(Directory.GetCurrentDirectory() + "/Images/logo.png"))
-                {
-                    // Draw the watermark in the bottom right corner
-                    image.Composite(watermark, Gravity.Southeast, CompositeOperator.Over);
-                }
-                image.Write(filePath);
-
-                await _azureImageUpload.UploadFileToStorage(filePath, fileName);
-
-                System.IO.File.Delete(filePath);
+                await _watermarkService.WatermarkImageAndUploadToAzure(fileDirectory);
             }
+
+            _watermarkService.ClearTempFolder(files);
+
             return Redirect("/");
         }
 
@@ -70,19 +42,17 @@ namespace Limalima.Backend.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadAjax(FileUploadViewModel model)
         {
-            if (model.File == null)
+            if (model.File == null || !_imageValidator.ValidateFile(model.File))
                 return BadRequest();
-            if (!_imageValidator.ValidateFile(model.File))
-                return BadRequest();
+           
+            await _watermarkService.UploadImageToTempFolder(model);
 
-            string filename = model.ImageTempId + "_" + Guid.NewGuid() + Path.GetExtension(model.File.FileName);
-            string tempFilename = Path.Combine(tempImagesFolder, filename);
-
-            using (var stream = System.IO.File.Create(tempFilename))
-            {
-                await model.File.CopyToAsync(stream);
-            }
             return Ok();
         }
+
+        //public IActionResult GetImage(Guid imageTempId, int imageIndex)
+        //{
+        //    //dla zapisaj oferty wgraj z azure
+        //}
     }
 }

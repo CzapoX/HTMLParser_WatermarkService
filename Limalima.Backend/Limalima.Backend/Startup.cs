@@ -1,4 +1,5 @@
 using Limalima.Backend.Azure;
+using Limalima.Backend.Components;
 using Limalima.Backend.Validation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,8 +22,9 @@ namespace Limalima.Backend
             var mvc = services.AddControllersWithViews();
             mvc.AddRazorRuntimeCompilation();
 
-            services.AddSingleton<IImageValidator, ImageValidator>();
-            services.AddSingleton<IAzureImageUploadComponent, AzureImageUploadComponent>();
+            services.AddScoped<IImageValidator, ImageValidator>();
+            services.AddScoped<IAzureImageUploadComponent, AzureImageUploadComponent>();
+            services.AddScoped<IWatermarkService, WatermarkService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -7,6 +7,11 @@ using System.Linq;
 
 namespace Limalima.Backend.Validation
 {
+    public interface IImageValidator
+    {
+        bool ValidateFile(IFormFile formFile);
+    }
+    
     public class ImageValidator : IImageValidator
     {
         private readonly long _fileSizeLimit;
