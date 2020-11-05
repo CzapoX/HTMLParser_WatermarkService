@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using ImageMagick;
+using Limalima.Backend.Azure;
 using Limalima.Backend.Models;
 using Limalima.Backend.Validation;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,8 @@ namespace Limalima.Backend.Controllers
 {
     public class WatermarkController : Controller
     {
-        private readonly IImageValidator imageValidator;
+        private readonly IImageValidator _imageValidator;
+        private readonly IAzureImageUploadComponent _azureImageUpload;
 
         private static readonly string tempImagesFolder = Path.Combine(Path.GetTempPath(), "FrutilsImagesTemp");
         private static readonly string watermarkedImagesFolderPath = Directory.GetCurrentDirectory() + "/Images/Temp";
@@ -27,9 +29,10 @@ namespace Limalima.Backend.Controllers
             }
         }
 
-        public WatermarkController(IImageValidator imageValidator)
+        public WatermarkController(IImageValidator imageValidator, IAzureImageUploadComponent azureImageUpload)
         {
-            this.imageValidator = imageValidator;
+            _imageValidator = imageValidator;
+            _azureImageUpload = azureImageUpload;
         }
 
         public IActionResult Index()
@@ -38,14 +41,14 @@ namespace Limalima.Backend.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddNew(AnnouceViewModel model)
+        public async Task<IActionResult> AddNew(AnnouceViewModel model)
         {
             var files = Directory.GetFiles(tempImagesFolder, model.ImageTempId + "*");
 
             foreach (var fileDirectory in files)
             {
                 using var image = new MagickImage(fileDirectory);
-                var fileName = Guid.NewGuid() + "." + Path.GetExtension(fileDirectory);
+                var fileName = Guid.NewGuid() + Path.GetExtension(fileDirectory);
                 var filePath = Path.Combine(watermarkedImagesFolderPath,
                      fileName);
 
@@ -55,6 +58,10 @@ namespace Limalima.Backend.Controllers
                     image.Composite(watermark, Gravity.Southeast, CompositeOperator.Over);
                 }
                 image.Write(filePath);
+
+                await _azureImageUpload.UploadFileToStorage(filePath, fileName);
+
+                System.IO.File.Delete(filePath);
             }
             return Redirect("/");
         }
@@ -65,11 +72,10 @@ namespace Limalima.Backend.Controllers
         {
             if (model.File == null)
                 return BadRequest();
-            if (!imageValidator.ValidateFile(model.File))
+            if (!_imageValidator.ValidateFile(model.File))
                 return BadRequest();
 
-            //zapis w temp pod nazwa pliku model.ImageTempId+"_xxx_+".jpg
-            string filename = model.ImageTempId + "_" + Guid.NewGuid() + "." + Path.GetExtension(model.File.FileName);
+            string filename = model.ImageTempId + "_" + Guid.NewGuid() + Path.GetExtension(model.File.FileName);
             string tempFilename = Path.Combine(tempImagesFolder, filename);
 
             using (var stream = System.IO.File.Create(tempFilename))
