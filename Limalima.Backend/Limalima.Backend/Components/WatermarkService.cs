@@ -1,6 +1,8 @@
 ﻿using ImageMagick;
 using Limalima.Backend.Azure;
 using Limalima.Backend.Models;
+using Limalima.Backend.Validation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
@@ -14,6 +16,8 @@ namespace Limalima.Backend.Components
         Task WatermarkImageAndUploadToAzure(string fileDirectory);
         void ClearTempFolder(string[] files);
         string[] GetFiles(AnnouceViewModel model);
+        bool ValidateFile(FileUploadViewModel file)
+;
     }
 
     public class WatermarkService : IWatermarkService
@@ -23,12 +27,14 @@ namespace Limalima.Backend.Components
 
         private readonly IAzureImageUploadComponent _azureImageUpload;
         private readonly ILogger<WatermarkService> _logger;
+        private readonly IImageValidator _imageValidator;
 
-        public WatermarkService(IAzureImageUploadComponent azureImageUpload, ILogger<WatermarkService> logger)
+        public WatermarkService(IAzureImageUploadComponent azureImageUpload, IImageValidator imageValidator, ILogger<WatermarkService> logger)
         {
             CreateFoldersIfNeeded();
             _azureImageUpload = azureImageUpload;
             _logger = logger;
+            _imageValidator = imageValidator;
         }
 
         public async Task UploadImageToTempFolder(FileUploadViewModel model)
@@ -45,7 +51,7 @@ namespace Limalima.Backend.Components
             }
             catch (Exception er)
             {
-                _logger.LogError(er, "AjaxFileUpload error");
+                _logger.LogError(er, "UploadImageToTempFolder error");
             }
         }
 
@@ -93,6 +99,10 @@ namespace Limalima.Backend.Components
         public string[] GetFiles(AnnouceViewModel model)
         {
             return Directory.GetFiles(tempImagesFolder, model.ImageTempId + "*");
+        }
+        public bool ValidateFile(FileUploadViewModel file)
+        {
+            return file.File == null || !_imageValidator.ValidateFile(file.File);
         }
 
         private void CreateFoldersIfNeeded()

@@ -25,6 +25,7 @@ namespace Limalima.Backend
             services.AddScoped<IImageValidator, ImageValidator>();
             services.AddScoped<IAzureImageUploadComponent, AzureImageUploadComponent>();
             services.AddScoped<IWatermarkService, WatermarkService>();
+            services.AddSingleton<IParsingClient, ParsingClient>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -11,7 +11,6 @@ namespace Limalima.Backend.Tests
 {
     public class ImageValidatorTest
     {
-
         private readonly IConfiguration configuration;
         private readonly IImageValidator imageValidator;
 
