@@ -1,6 +1,5 @@
 ﻿using Limalima.Backend.Components;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Limalima.Backend.Controllers
@@ -23,30 +22,22 @@ namespace Limalima.Backend.Controllers
         [HttpPost]
         public async Task<IActionResult> ImportData(string url)
         {
-            var productLinksList = await _parsingClient.GetProductsLinks(url);
-            var productsHtmlList = await _parsingClient.GetProductsHtml(productLinksList);
+            var artList = await _parsingClient.GetArtsFromUser(url);
 
             return Ok();
         }
-
-
-
-        //https://www.etsy.com/pl/shop/GracePersonalized przykladowy profil uzytkownika
-        //HTTPClient (jako singleton!)
-        //xpath
     }
 }
 
-
+//REF 2020-11-07
 /*
      <a
-        class=" display-inline-block listing-link
-"
+        class="display-inline-block listing-link"
         data-listing-id="697558243"
         data-palette-listing-image
         href="https://www.etsy.com/pl/listing/697558243/custom-letter-necklace-vote-necklace?ref=shop_home_feat_1&pro=1"
 
-            target="etsy.697558243"
+        target="etsy.697558243"
         title="Custom Letter Necklace - Voxte Necklace - Initial Necklace - Mother&#39;s Day Gift - Personalized Jewelry - Bridesmaid Gift - #LTTRF149"
     >
  */

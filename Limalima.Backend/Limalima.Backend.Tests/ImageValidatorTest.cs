@@ -16,7 +16,7 @@ namespace Limalima.Backend.Tests
 
         private readonly Dictionary<string, string> configurationSettings = new Dictionary<string, string>
         {
-                {"FileSizeLimit", "5097152"},
+              {"FileSizeLimit", "5097152"}
         };
 
         public ImageValidatorTest()

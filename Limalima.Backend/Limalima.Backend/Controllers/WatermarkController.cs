@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Limalima.Backend.Components;
 using Limalima.Backend.Models;
@@ -52,9 +53,9 @@ namespace Limalima.Backend.Controllers
 
         //public IActionResult GetImage(Guid imageTempId, int imageIndex)
         //{
-            ////TODO
-            ////dla zapisaj oferty wgraj z azure
-            ////dla nowej wgraj z dysku
+        ////TODO
+        ////dla zapisaj oferty wgraj z azure
+        ////dla nowej wgraj z dysku
         //}
     }
 }

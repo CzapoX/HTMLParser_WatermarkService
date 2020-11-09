@@ -9,7 +9,7 @@ namespace Limalima.Backend.Azure
 {
     public interface IAzureImageUploadComponent
     {
-        Task<bool> UploadFileToStorage(Stream stream, string fileName);
+        Task<string> UploadFileToStorage(Stream stream, string fileName);
     }
 
     public class AzureImageUploadComponent : IAzureImageUploadComponent
@@ -27,7 +27,7 @@ namespace Limalima.Backend.Azure
             _containerClient = cloudBlobClient.GetBlobContainerClient(containerName);
         }
 
-        public async Task<bool> UploadFileToStorage(Stream stream, string fileName)
+        public async Task<string> UploadFileToStorage(Stream stream, string fileName)
         {
             try
             {
@@ -35,12 +35,12 @@ namespace Limalima.Backend.Azure
 
                 await blobClient.UploadAsync(stream, true);
 
-                return true;
+                return blobClient.Uri.AbsoluteUri;
             }
             catch (Exception exc)
             {
                 _logger.LogError(exc, "UploadFileToStorage error");
-                return false;
+                return "";
             }
         }
 

@@ -5,29 +5,23 @@ namespace Limalima.Backend.Data
 {
     public class Art
     {
-        public Guid OwnerId { get; set; }
+
+        public Guid ArtId { get; set; } = Guid.NewGuid();
+        public Guid OwnerId { get; set; }//daj random narazie
 
         public string Name { get; set; }
 
         public decimal Price { get; set; }
 
         public string Description { get; set; }
-        public ArtStatus Status { get; set; }
+        public ArtStatus Status { get; set; } //Imported
 
+        public string CategoriesImported { get; set; }
 
-        //public int CategoryId { get; set; }
-        //public Category Category { get; set; }
+        public string MaterialsImported { get; set; }//comma separated, e.g.: "Różowe złoto,Srebro,Złoto"
+        public List<ArtPhoto> ArtPhotos { get; set; } //sciagnac zdjecia, dodac watermark i zapisac do azure. na koniec zapis do bazy
 
-        //public List<ArtMaterial> ArtMaterials { get; set; }
-        public List<ArtPhoto> ArtPhotos { get; set; }
-
-        public Guid DeliveryTemplateId { get; set; }
-
-        public string Address { get; set; }
-        public string PhoneNumber { get; set; }
-        public bool PhoneNumberShowPublic { get; set; }
-
-        public string MainPhotoUrl { get; set; }
+        public string MainPhotoUrl { get; set; } //sciagnac zjdecia, dodac watermark i zapisac do azure, a tutaj Url z Azure
     }
     public enum ArtStatus
     {
@@ -43,12 +37,13 @@ namespace Limalima.Backend.Data
         Expired = 2000,
         //Archived = 8000,
         Deleted = 9999,
-        TransactionCopy = 10000
+        TransactionCopy = 10000,
+        Imported=50000
     }
     public class ArtPhoto
     {
         public int Id { get; set; }
-        public string Url { get; set; }
+        public string Url { get; set; } //url z azure
 
         public Guid ArtId { get; set; }
         public Art Art { get; set; }
