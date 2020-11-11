@@ -26,7 +26,7 @@ namespace Limalima.Backend.Tests
         };
 
         private readonly EtsyParsingClient sut;
-        private readonly string sampleEtsyUserUrl = "https://www.etsy.com/pl/shop/GracePersonalized";
+        private readonly string sampleEtsyUserUrl = "https://www.etsy.com/shop/RedVesselDesigns";
         private readonly List<string> sampleEtsyProductUrlForFetching = new List<string>
         {
             "https://www.etsy.com/pl/listing/873965045/custom-initial-necklace-script-initial"

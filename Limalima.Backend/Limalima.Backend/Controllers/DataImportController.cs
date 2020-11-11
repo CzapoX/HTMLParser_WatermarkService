@@ -22,6 +22,7 @@ namespace Limalima.Backend.Controllers
         [HttpPost]
         public async Task<IActionResult> ImportData(string url)
         {
+
             var artList = await _parsingClient.GetArtsFromUser(url);
 
             return Ok();

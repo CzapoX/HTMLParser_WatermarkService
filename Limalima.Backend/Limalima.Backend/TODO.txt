@@ -1,13 +1,1 @@
-﻿Przypadek 1 - dodanie nowej oferty
-----------------------------------
-Id oferty jest nowe
-
-- Upload obrazków tymczasowych na dysk
-- Po zapisaniu oferty: dodanie watermark i wyslanie do Azure
-
-
-Przypadek 2 - edycja oferty
----------------------------
-Id oferty jest znane (z bazy danych)
-
-- Po update oferty: dodanie watermark i wyslanie do Azure
+﻿1. Stronnicowanie w importerze dziel sztuki

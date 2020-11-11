@@ -48,11 +48,27 @@ namespace Limalima.Backend.Components
 
         public async Task<IList<string>> GetProductsLinks(string profileUrl)
         {
-            var pageHtml = await GetPageHtml(profileUrl);
-            var productsHtml = GetNode(pageHtml, "listing-cards");
-            var productsList = FetchListFromNode(productsHtml, "data-shop-id");
+            string url = profileUrl;
+            List<IList<string>> productLinksList = new List<IList<string>>();
 
-            return GetProductsLinksToList(productsList);
+            for (int index = 1; ; ++index)
+            {
+                url = profileUrl + "?page=" + index;
+                
+                var pageHtml = await GetPageHtml(url);
+
+
+                var productsHtml = GetNode(pageHtml, "listing-cards");
+                var productsList = FetchListFromNode(productsHtml, "data-shop-id");
+                var productsLink = GetProductsLinksToList(productsList);
+
+                if (productLinksList.Any(o => o.SequenceEqual(productsLink)))
+                    break;
+
+                productLinksList.Add(productsLink);
+            }
+
+            return productLinksList.SelectMany(l => l).Distinct().ToList();
         }
 
         public async Task<IList<HtmlDocument>> GetProductsHtml(IList<string> itemsLinksList)
