@@ -17,7 +17,6 @@ namespace Limalima.Backend.Components
 
     public class EtsyParsingClient : IParsingClient
     {
-
         //https://www.etsy.com/pl/shop/GracePersonalized przykladowy profil uzytkownika
 
         private readonly ILogger<EtsyParsingClient> _logger;
@@ -56,8 +55,6 @@ namespace Limalima.Backend.Components
                 url = profileUrl + "?page=" + index;
                 
                 var pageHtml = await GetPageHtml(url);
-
-
                 var productsHtml = GetNode(pageHtml, "listing-cards");
                 var productsList = FetchListFromNode(productsHtml, "data-shop-id");
                 var productsLink = GetProductsLinksToList(productsList);
@@ -76,6 +73,7 @@ namespace Limalima.Backend.Components
             try
             {
                 var productsHtml = new List<HtmlDocument>();
+
                 foreach (var url in itemsLinksList)
                 {
                     var productHtml = await GetPageHtml(url);
@@ -217,7 +215,7 @@ namespace Limalima.Backend.Components
             }
         }
 
-        private async Task<HtmlDocument> GetPageHtml(string url)
+        public async Task<HtmlDocument> GetPageHtml(string url)
         {
             try
             {

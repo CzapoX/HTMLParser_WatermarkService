@@ -1,15 +1,16 @@
-﻿using Limalima.Backend.Components;
-using Moq;
-using Xunit;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
+﻿using Limalima.Backend.Azure;
+using Limalima.Backend.Components;
+using Limalima.Backend.Models;
 using Limalima.Backend.Validation;
-using Limalima.Backend.Azure;
 using Microsoft.AspNetCore.Hosting;
-using System.Reflection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Moq;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
+using Xunit;
 
 namespace Limalima.Backend.Tests
 {
@@ -19,18 +20,14 @@ namespace Limalima.Backend.Tests
         private readonly IConfiguration configuration;
         private readonly Dictionary<string, string> configurationSettings = new Dictionary<string, string>
         {
-            {"FileSizeLimit", "5097152"},
-            { "AZURE_STORAGE_CONNECTION_STRING", "DefaultEndpointsProtocol=https;AccountName=praktykistorageaccount;AccountKey=stbVFtmTUgT8O0cjl8/sSDfwoP4xbnnxWCDZYPRRez1iX5PxkgZmpqJkWL9sfWs1UEj8zlyrQ3O7qaWjxA0UMA==;EndpointSuffix=core.windows.net" },
-            { "AZURE_STORAGE_CONTAINER", "obrazki" }
-
+            {"FileSizeLimit", "5097152"},          
         };
 
         private readonly EtsyParsingClient sut;
         private readonly string sampleEtsyUserUrl = "https://www.etsy.com/shop/RedVesselDesigns";
-        private readonly List<string> sampleEtsyProductUrlForFetching = new List<string>
-        {
-            "https://www.etsy.com/pl/listing/873965045/custom-initial-necklace-script-initial"
-        };
+
+        private readonly string singleEtsyProductUrl = "https://www.etsy.com/pl/listing/873965045/custom-initial-necklace-script-initial";
+
         private readonly List<string> sampleEtsyProductsUrl = new List<string>
         {
             "https://www.etsy.com/listing/898773161/custom-handmade-vintage-style-coffee",
@@ -38,26 +35,24 @@ namespace Limalima.Backend.Tests
             "https://www.etsy.com/pl/listing/746855885/dainty-name-choker-necklace-custom-name"
         };
 
-
         public EtsyParsingClientIntegrationTests()
         {
             configuration = new ConfigurationBuilder()
               .AddInMemoryCollection(configurationSettings)
               .Build();
             Mock<ImageValidator> imageValidator = new Mock<ImageValidator>(configuration);
-
+           
             Mock<ILogger<EtsyParsingClient>> loggerEtsy = new Mock<ILogger<EtsyParsingClient>>();
-            Mock<ILogger<WatermarkService>> loggerWatermark = new Mock<ILogger<WatermarkService>>();
-            Mock<IWebHostEnvironment> environment = new Mock<IWebHostEnvironment>();
-            string testsPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            environment.Setup(e => e.WebRootPath).Returns(testsPath);
 
-            Mock<ILogger<AzureImageUploadComponent>> loggerAzure = new Mock<ILogger<AzureImageUploadComponent>>();
-            Mock<AzureImageUploadComponent> azureUploadComponent = new Mock<AzureImageUploadComponent>(configuration, loggerAzure.Object);
-            Mock<WatermarkService> watermarkService = new Mock<WatermarkService>(azureUploadComponent.Object, imageValidator.Object, environment.Object, loggerWatermark.Object);
+
+            Mock<IAzureImageUploadComponent> azureUploadComponent = new Mock<IAzureImageUploadComponent>();
+            Mock<IWatermarkService> watermarkService = new Mock<IWatermarkService>();
+
+            watermarkService.Setup(e=>e.WatermarkImageAndUploadToAzure(It.IsAny<string>())).ReturnsAsync("Url");
+            watermarkService.Setup(e => e.GetFiles(It.IsAny<AnnouceViewModel>())).Returns(new string[] { "Directory" });
+
             sut = new EtsyParsingClient(loggerEtsy.Object, watermarkService.Object);
         }
-
 
         [Fact]
         public async Task ShouldFetchProductUrlsForProfileUrl()
@@ -107,21 +102,19 @@ namespace Limalima.Backend.Tests
         }
 
         [Fact]
-        public void ShouldFetchProductMaterials()
+        public async Task ShouldFetchProductMaterials()
         {
-            var itemHtmlList = sut.GetProductsHtml(sampleEtsyProductUrlForFetching).Result;
-            var itemHtml = itemHtmlList[0];
+            var itemHtml = await sut.GetPageHtml(singleEtsyProductUrl);
 
             var results = sut.GetProductMaterials(itemHtml);
 
-            Assert.Equal("Różowe złoto, Srebro, Złoto", results);
+            Assert.Equal("Różowe złoto; Srebro; Złoto", results);
         }
 
         [Fact]
-        public void ShouldFetchProductCategories()
+        public async Task ShouldFetchProductCategories()
         {
-            var itemHtmlList = sut.GetProductsHtml(sampleEtsyProductUrlForFetching).Result;
-            var itemHtml = itemHtmlList[0];
+            var itemHtml = await sut.GetPageHtml(singleEtsyProductUrl);
 
             var results = sut.GetProductCategories(itemHtml);
 
@@ -129,14 +122,13 @@ namespace Limalima.Backend.Tests
         }
 
         [Fact]
-        public void ShouldFetchPhotosUrl()
+        public async Task ShouldFetchPhotosUrl()
         {
-            var itemHtmlList = sut.GetProductsHtml(sampleEtsyProductUrlForFetching).Result;
-            var itemHtml = itemHtmlList[0];
+            var itemHtml = await sut.GetPageHtml(singleEtsyProductUrl);
 
             var results = sut.GetProductPhotosUrl(itemHtml);
 
-            Assert.NotNull(results);
+            Assert.NotEmpty(results);
         }
     }
 }
