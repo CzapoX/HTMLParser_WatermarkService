@@ -53,10 +53,10 @@ namespace Limalima.Backend.Components
             for (int index = 1; ; ++index)
             {
                 url = profileUrl + "?page=" + index;
-                
+
                 var pageHtml = await GetPageHtml(url);
                 var productsHtml = GetNode(pageHtml, "listing-cards");
-                var productsList = GetListFromNode(productsHtml, "data-shop-id");
+                var productsList = GetListFromNode(productsHtml, "li", "data-shop-id", "");
                 var productsLink = GetProductsLinksToList(productsList);
 
                 if (productLinksList.Any(o => o.SequenceEqual(productsLink)))
@@ -123,7 +123,7 @@ namespace Limalima.Backend.Components
             if (detailsNode.Count == 0)
                 return "";
 
-            var detailList = GetListFromNode(detailsNode, "class");
+            var detailList = GetListFromNode(detailsNode, "li", "class", "");
             var materials = "";
 
             foreach (var detailText in detailList)
@@ -141,7 +141,7 @@ namespace Limalima.Backend.Components
         {
             var categoriesNode = GetNode(productHtml, "wt-action-group wt-list-inline wt-mb-xs-2");
 
-            var categorylist = GetListFromNode(categoriesNode, "class", "wt-action-group__item-container");
+            var categorylist = GetListFromNode(categoriesNode, "li", "class", "wt-action-group__item-container");
             var categoriesImported = new List<string>();
 
             foreach (var category in categorylist)
@@ -159,7 +159,7 @@ namespace Limalima.Backend.Components
         {
             var photosNode = GetNode(productHtml, "wt-list-unstyled wt-overflow-hidden wt-position-relative carousel-pane-list");
 
-            var photoList = GetListFromNode(photosNode, "data-carousel-pane", "");
+            var photoList = GetListFromNode(photosNode, "li", "data-carousel-pane", "");
             var photosUrl = new List<string>();
 
             foreach (var photo in photoList)
@@ -240,11 +240,11 @@ namespace Limalima.Backend.Components
                     .StartsWith(className)).ToList();
         }
 
-        private List<HtmlNode> GetListFromNode(IList<HtmlNode> productsHtml, string attributeName, string attributeValue = "")
+        private List<HtmlNode> GetListFromNode(IList<HtmlNode> productsHtml, string descendantsNodeName, string attributeName, string attributeValue)
         {
             var list = new List<HtmlNode>();
 
-            return list = productsHtml[0].Descendants("li")
+            return list = productsHtml[0].Descendants(descendantsNodeName)
                  .Where(n => n.GetAttributeValue(attributeName, "")
                  .Equals(attributeValue)).ToList();
         }
