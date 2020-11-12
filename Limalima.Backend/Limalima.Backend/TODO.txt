@@ -1,1 +1,11 @@
-﻿1. Stronnicowanie w importerze dziel sztuki
+﻿Pakamera import tagów
+
+---
+Zapis Art do bazy 
+Obróbka danych w bazie (osoby exe)
+
+
+Watermark (16.11 najczesniej, mozeliwe ze w limalima kodzie)
+-----
+Zapisywane obrazek powinien byc automatycznie zmieniany na kwadrat np. 512x512
+tło po zmianie powinno byc wypelnione jednolitym kolorem (na podstawie kodu z funkcji 'GetImageBorder').

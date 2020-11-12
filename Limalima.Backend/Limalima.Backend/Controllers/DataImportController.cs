@@ -1,16 +1,17 @@
-﻿using Limalima.Backend.Components.ParsingClient;
+﻿using Limalima.Backend.Components;
+using Limalima.Backend.Components.ParsingClient;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System.Threading.Tasks;
 
 namespace Limalima.Backend.Controllers
 {
     public class DataImportController : Controller
     {
-        private readonly IParsingClient _parsingClient;
-
-        public DataImportController(IParsingClient parsingClient)
+        private readonly IWatermarkService _watermarkService;
+        public DataImportController(IWatermarkService watermarkService)
         {
-            _parsingClient = parsingClient;
+            _watermarkService = watermarkService;
         }
 
         public IActionResult Index()
@@ -20,12 +21,31 @@ namespace Limalima.Backend.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> ImportData(string url)
+        public async Task<IActionResult> ImportData(string url, string importSource)
         {
+            IParsingClient _parsingClient = null;
+            switch (importSource)
+            {
+                case "etsy":
+                    _parsingClient = new EtsyParsingClient(_watermarkService);
+                    break;
+                case "pakamera":
+                    _parsingClient = new PakameraParsingClient(_watermarkService);
+                    break;
+            }
 
-            var artList = await _parsingClient.GetArtsFromUser(url);
+            //TODO dodac walidacje adresu dla konkretnego importera
+            //if (!_parsingClient.IsValidUrl(url))
+            //{
+            //    return RedirectToAction("Index");
+            //}
 
-            return Ok();
+            if (_parsingClient != null)
+            {
+                var artList = await _parsingClient.GetArtsFromUser(url);
+            }
+
+            return RedirectToAction("Index");
         }
     }
 }

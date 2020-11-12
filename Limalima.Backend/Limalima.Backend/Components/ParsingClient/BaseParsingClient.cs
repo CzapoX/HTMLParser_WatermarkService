@@ -1,7 +1,7 @@
 ﻿using HtmlAgilityPack;
 using Limalima.Backend.Data;
 using Limalima.Backend.Models;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,21 +14,18 @@ namespace Limalima.Backend.Components.ParsingClient
         Task<IList<Art>> GetArtsFromUser(string url);
     }
 
-
     abstract public class BaseParsingClient : IParsingClient
     {
-        protected readonly ILogger<BaseParsingClient> _logger;
+        protected readonly ILogger _logger = Log.Logger;
         protected readonly IWatermarkService _watermarkService;
 
-        protected BaseParsingClient(ILogger<BaseParsingClient> logger, IWatermarkService watermarkService)
+        protected BaseParsingClient(IWatermarkService watermarkService)
         {
-            _logger = logger;
             _watermarkService = watermarkService;
         }
 
         public async Task<IList<Art>> GetArtsFromUser(string url)
         {
-
             try
             {
                 var productLinksList = await GetProductsLinks(url);
@@ -38,7 +35,7 @@ namespace Limalima.Backend.Components.ParsingClient
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "GetArtsFromUser error");
+                _logger.Error(ex, "GetArtsFromUser error");
 
                 return new List<Art>();
             }
@@ -60,7 +57,7 @@ namespace Limalima.Backend.Components.ParsingClient
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "GetProductsHtml error");
+                _logger.Error(ex, "GetProductsHtml error");
 
                 return new List<HtmlDocument>();
             }
@@ -82,7 +79,8 @@ namespace Limalima.Backend.Components.ParsingClient
                     Description = GetProductDescription(productHtml),
                     Status = ArtStatus.Imported,
                     CategoriesImported = GetProductCategories(productHtml),
-                    MaterialsImported = GetProductMaterials(productHtml)
+                    MaterialsImported = GetProductMaterials(productHtml),
+                    TagsImported = GetProductTags(productHtml)
                 };
 
                 art.ArtPhotos = await ImportImagesToAzure(productHtml, art.ArtId);
@@ -122,7 +120,7 @@ namespace Limalima.Backend.Components.ParsingClient
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "ImportImagesToAzure error");
+                _logger.Error(ex, "ImportImagesToAzure error");
 
                 return new List<ArtPhoto>();
             }
@@ -139,7 +137,7 @@ namespace Limalima.Backend.Components.ParsingClient
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "GetPageHtml error");
+                _logger.Error(ex, "GetPageHtml error");
 
                 return new HtmlDocument();
             }
@@ -152,6 +150,7 @@ namespace Limalima.Backend.Components.ParsingClient
                     .Where(n => n.GetAttributeValue("class", "")
                     .StartsWith(className)).ToList();
         }
+
         protected List<HtmlNode> GetListFromNode(IList<HtmlNode> productsHtml, string descendantsNodeName, string attributeName, string attributeValue)
         {
             var list = new List<HtmlNode>();
@@ -186,9 +185,10 @@ namespace Limalima.Backend.Components.ParsingClient
         public abstract string GetProductMaterials(HtmlDocument productHtml);
         public abstract string GetProductCategories(HtmlDocument productHtml);
         public abstract List<string> GetProductPhotosUrl(HtmlDocument productHtml);
-        public abstract string GetProductName(HtmlDocument productHtml);
-        public abstract decimal GetProductPrice(HtmlDocument productHtml);
-        public abstract string GetProductDescription(HtmlDocument productHtml);
+        protected abstract string GetProductName(HtmlDocument productHtml);
+        protected abstract decimal GetProductPrice(HtmlDocument productHtml);
+        protected abstract string GetProductDescription(HtmlDocument productHtml);
+        protected abstract string GetProductTags(HtmlDocument productHtml);
 
     }
 }

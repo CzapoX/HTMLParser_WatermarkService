@@ -47,7 +47,7 @@ namespace Limalima.Backend.Tests
             watermarkService.Setup(e => e.WatermarkImageAndUploadToAzure(It.IsAny<string>())).ReturnsAsync("Url");
             watermarkService.Setup(e => e.GetFiles(It.IsAny<AnnouceViewModel>())).Returns(new string[] { "Directory" });
 
-            sut = new PakameraParsingClient(loggerPakamera.Object, watermarkService.Object);
+            sut = new PakameraParsingClient(watermarkService.Object);
         }
 
         [Fact]
@@ -105,7 +105,7 @@ namespace Limalima.Backend.Tests
 
             var results = sut.GetProductCategories(itemHtml);
 
-            Assert.Contains("tshirt", results);
+            Assert.Contains("t-shirty męskie", results);
         }
 
         [Fact]

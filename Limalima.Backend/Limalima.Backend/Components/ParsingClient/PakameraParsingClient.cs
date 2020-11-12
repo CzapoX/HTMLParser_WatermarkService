@@ -1,6 +1,5 @@
 ﻿using HtmlAgilityPack;
 using Limalima.Backend.Components.ParsingClient;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +12,11 @@ namespace Limalima.Backend.Components
     {
         //https://www.pakamera.pl/bambaki przykladowy profil uzytkownika        
 
-        public PakameraParsingClient(ILogger<PakameraParsingClient> logger, IWatermarkService watermarkService) : base(logger, watermarkService)
+        //-([0-9]*)-t/s/[0-9]
+        //t - tag
+        //s - firma
+        //0-9 - kategoria
+        public PakameraParsingClient(IWatermarkService watermarkService) : base(watermarkService)
         {
         }
 
@@ -61,28 +64,37 @@ namespace Limalima.Backend.Components
 
         public override string GetProductCategories(HtmlDocument productHtml)
         {
-
-            var categoriesNode = GetNode(productHtml, "div", "tagcld");
-
-            var categoryList = new List<HtmlNode>();
-
-            categoryList = categoriesNode[0].Descendants("a")
-                 .Where(n => n.GetAttributeValue("title", "")
-                 .Any()
-                ).ToList();
-
+            List<HtmlNode> categoryList = GetCategoryList(productHtml);
 
             var categoriesImported = new List<string>();
 
             foreach (var category in categoryList)
             {
-                var categoryText = category.InnerText.Trim();
+                var href = category.GetAttributeValue("href", "");
 
-                categoriesImported.Add(categoryText);
+                if (Regex.IsMatch(href, "[0-9]-[0-9]"))
+                {
+                    var categoryText = category.InnerText.Trim();
+
+                    categoriesImported.Add(categoryText);
+
+                    break;
+                }
             }
             string joined = String.Join(';', categoriesImported);
 
             return joined;
+        }
+
+        private List<HtmlNode> GetCategoryList(HtmlDocument productHtml)
+        {
+            var categoriesNode = GetNode(productHtml, "div", "tagcld");
+
+            var categoryList = categoriesNode[0].Descendants("a")
+                  .Where(n => n.GetAttributeValue("title", "")
+                  .Any()
+                 ).ToList();
+            return categoryList;
         }
 
         public override List<string> GetProductPhotosUrl(HtmlDocument productHtml)
@@ -105,14 +117,14 @@ namespace Limalima.Backend.Components
             return photosUrl;
         }
 
-        public override string GetProductName(HtmlDocument productHtml)
+        protected override string GetProductName(HtmlDocument productHtml)
         {
             var name = GetProductChoosenElementText(productHtml, "h1", "", "");
 
             return name;
         }
 
-        public override Decimal GetProductPrice(HtmlDocument productHtml)
+        protected override Decimal GetProductPrice(HtmlDocument productHtml)
         {
             var priceNodeText = GetProductChoosenElementText(productHtml, "span", "class", "ppp bnvalue");
             var priceAsString = Regex.Replace(priceNodeText, "[^0-9.,]", "");
@@ -123,11 +135,34 @@ namespace Limalima.Backend.Components
             return result;
         }
 
-        public override string GetProductDescription(HtmlDocument productHtml)
+        protected override string GetProductDescription(HtmlDocument productHtml)
         {
             var description = GetProductChoosenElementText(productHtml, "span", "class", "ades");
 
             return Regex.Replace(description, @"<a\b[^>]+>([^<]*(?:(?!</a)<[^<]*)*)</a>", "$1");
+        }
+
+        protected override string GetProductTags(HtmlDocument productHtml)
+        {
+            var categoryList = GetCategoryList(productHtml);
+
+            var tagsImported = new List<string>();
+
+            foreach (var category in categoryList)
+            {
+                var href = category.GetAttributeValue("href", "");
+
+                if (Regex.IsMatch(href, "[0-9]-t[0-9]"))
+                {
+                    var categoryText = category.InnerText.Trim();
+
+                    tagsImported.Add(categoryText);
+
+                }
+            }
+            string joined = String.Join(';', tagsImported);
+
+            return joined;
         }
     }
 }

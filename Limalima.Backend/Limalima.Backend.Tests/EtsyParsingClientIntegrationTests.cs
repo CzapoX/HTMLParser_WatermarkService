@@ -39,17 +39,13 @@ namespace Limalima.Backend.Tests
               .AddInMemoryCollection(configurationSettings)
               .Build();
             Mock<ImageValidator> imageValidator = new Mock<ImageValidator>(configuration);
-           
-            Mock<ILogger<EtsyParsingClient>> loggerEtsy = new Mock<ILogger<EtsyParsingClient>>();
-
-
             Mock<IAzureImageUploadComponent> azureUploadComponent = new Mock<IAzureImageUploadComponent>();
             Mock<IWatermarkService> watermarkService = new Mock<IWatermarkService>();
 
             watermarkService.Setup(e=>e.WatermarkImageAndUploadToAzure(It.IsAny<string>())).ReturnsAsync("Url");
             watermarkService.Setup(e => e.GetFiles(It.IsAny<AnnouceViewModel>())).Returns(new string[] { "Directory" });
 
-            sut = new EtsyParsingClient(loggerEtsy.Object, watermarkService.Object);
+            sut = new EtsyParsingClient(watermarkService.Object);
         }
 
         [Fact]

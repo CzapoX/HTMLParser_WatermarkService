@@ -13,7 +13,7 @@ namespace Limalima.Backend.Components.ParsingClient
         //https://www.etsy.com/pl/shop/GracePersonalized przykladowy profil uzytkownika
 
 
-        public EtsyParsingClient(ILogger<EtsyParsingClient> logger, IWatermarkService watermarkService) : base(logger, watermarkService)
+        public EtsyParsingClient(IWatermarkService watermarkService) : base( watermarkService)
         {
         }
 
@@ -105,14 +105,14 @@ namespace Limalima.Backend.Components.ParsingClient
             return photosUrl;
         }
 
-        public override string GetProductName(HtmlDocument productHtml)
+        protected override string GetProductName(HtmlDocument productHtml)
         {
             var name = GetProductChoosenElementText(productHtml, "h1", "class", "wt-text-body-03 wt-line-height-tight wt-break-word wt-mb-xs-1");
 
             return name;
         }
 
-        public override decimal GetProductPrice(HtmlDocument productHtml)
+        protected override decimal GetProductPrice(HtmlDocument productHtml)
         {
             var priceAsString = GetProductChoosenElementText(productHtml, "p", "class", "wt-text-title-03 wt-mr-xs-2");
             priceAsString = Regex.Replace(priceAsString, "[^0-9,]", "");
@@ -121,11 +121,16 @@ namespace Limalima.Backend.Components.ParsingClient
             return result;
         }
 
-        public override string GetProductDescription(HtmlDocument productHtml)
+        protected override string GetProductDescription(HtmlDocument productHtml)
         {
             var description = GetProductChoosenElementText(productHtml, "p", "class", "wt-text-body-01 wt-break-word");
 
             return Regex.Replace(description, @"<a\b[^>]+>([^<]*(?:(?!</a)<[^<]*)*)</a>", "$1");
+        }
+
+        protected override string GetProductTags(HtmlDocument productHtml)
+        {
+            return "";
         }
     }
 }

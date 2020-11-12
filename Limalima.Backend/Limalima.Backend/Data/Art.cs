@@ -17,8 +17,9 @@ namespace Limalima.Backend.Data
         public ArtStatus Status { get; set; } //Imported
 
         public string CategoriesImported { get; set; }
+        public string TagsImported { get; set; }
 
-        public string MaterialsImported { get; set; }//comma separated, e.g.: "Różowe złoto,Srebro,Złoto"
+        public string MaterialsImported { get; set; }//semicolon separated, e.g.: "Różowe złoto;Srebro;Złoto"
         public List<ArtPhoto> ArtPhotos { get; set; } //sciagnac zdjecia, dodac watermark i zapisac do azure. na koniec zapis do bazy
 
         public string MainPhotoUrl { get; set; } //sciagnac zjdecia, dodac watermark i zapisac do azure, a tutaj Url z Azure
