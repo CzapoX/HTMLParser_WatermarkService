@@ -5,24 +5,22 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Limalima.Backend.Components
+namespace Limalima.Backend.Components.ParsingClient
 {
     public interface IParsingClient
     {
         Task<IList<Art>> GetArtsFromUser(string url);
     }
 
-    public class EtsyParsingClient : IParsingClient
+
+    abstract public class BaseParsingClient : IParsingClient
     {
-        //https://www.etsy.com/pl/shop/GracePersonalized przykladowy profil uzytkownika
+        protected readonly ILogger<BaseParsingClient> _logger;
+        protected readonly IWatermarkService _watermarkService;
 
-        private readonly ILogger<EtsyParsingClient> _logger;
-        private readonly IWatermarkService _watermarkService;
-
-        public EtsyParsingClient(ILogger<EtsyParsingClient> logger, IWatermarkService watermarkService)
+        protected BaseParsingClient(ILogger<BaseParsingClient> logger, IWatermarkService watermarkService)
         {
             _logger = logger;
             _watermarkService = watermarkService;
@@ -30,6 +28,7 @@ namespace Limalima.Backend.Components
 
         public async Task<IList<Art>> GetArtsFromUser(string url)
         {
+
             try
             {
                 var productLinksList = await GetProductsLinks(url);
@@ -43,29 +42,6 @@ namespace Limalima.Backend.Components
 
                 return new List<Art>();
             }
-        }
-
-        public async Task<IList<string>> GetProductsLinks(string profileUrl)
-        {
-            string url = profileUrl;
-            List<IList<string>> productLinksList = new List<IList<string>>();
-
-            for (int index = 1; ; ++index)
-            {
-                url = profileUrl + "?page=" + index;
-
-                var pageHtml = await GetPageHtml(url);
-                var productsHtml = GetNode(pageHtml, "listing-cards");
-                var productsList = GetListFromNode(productsHtml, "li", "data-shop-id", "");
-                var productsLink = GetProductsLinksToList(productsList);
-
-                if (productLinksList.Any(o => o.SequenceEqual(productsLink)))
-                    break;
-
-                productLinksList.Add(productsLink);
-            }
-
-            return productLinksList.SelectMany(l => l).Distinct().ToList();
         }
 
         public async Task<IList<HtmlDocument>> GetProductsHtml(IList<string> itemsLinksList)
@@ -89,6 +65,7 @@ namespace Limalima.Backend.Components
                 return new List<HtmlDocument>();
             }
         }
+
 
         public async Task<IList<Art>> CreateArtListAsync(IList<HtmlDocument> productsHtmlList)
         {
@@ -115,70 +92,6 @@ namespace Limalima.Backend.Components
             }
 
             return artList;
-        }
-        public string GetProductMaterials(HtmlDocument productHtml)
-        {
-            var detailsNode = GetNode(productHtml, "wt-text-body-01");
-
-            if (detailsNode.Count == 0)
-                return "";
-
-            var detailList = GetListFromNode(detailsNode, "li", "class", "");
-            var materials = "";
-
-            foreach (var detailText in detailList)
-            {
-                var productDetail = detailText.InnerText.Trim();
-
-                if (productDetail.Contains("Materiały:"))
-                    materials = productDetail.Replace("Materiały: ", "");
-            }
-
-            return materials.Replace(",", ";");
-        }
-
-        public string GetProductCategories(HtmlDocument productHtml)
-        {
-            var categoriesNode = GetNode(productHtml, "wt-action-group wt-list-inline wt-mb-xs-2");
-
-            var categorylist = GetListFromNode(categoriesNode, "li", "class", "wt-action-group__item-container");
-            var categoriesImported = new List<string>();
-
-            foreach (var category in categorylist)
-            {
-                var categoryText = category.InnerText.Trim();
-
-                categoriesImported.Add(categoryText);
-            }
-            string joined = String.Join(';', categoriesImported);
-
-            return joined;
-        }
-
-        public List<string> GetProductPhotosUrl(HtmlDocument productHtml)
-        {
-            var photosNode = GetNode(productHtml, "wt-list-unstyled wt-overflow-hidden wt-position-relative carousel-pane-list");
-
-            var photoList = GetListFromNode(photosNode, "li", "data-carousel-pane", "");
-            var photosUrl = new List<string>();
-
-            foreach (var photo in photoList)
-            {
-                var photoNode = photo.Descendants("img");
-                if (photoNode != null)
-                {
-                    var photoUrl = photoNode.FirstOrDefault()?.GetAttributeValue("data-src", "");
-
-                    if (String.IsNullOrWhiteSpace(photoUrl))
-                        photoUrl = photoNode.FirstOrDefault()?.GetAttributeValue("src", "");
-
-                    if (!String.IsNullOrWhiteSpace(photoUrl))
-                        photosUrl.Add(photoUrl);
-                }
-
-            }
-
-            return photosUrl;
         }
 
         public async Task<List<ArtPhoto>> ImportImagesToAzure(HtmlDocument productHtml, Guid artId)
@@ -232,15 +145,14 @@ namespace Limalima.Backend.Components
             }
         }
 
-        private List<HtmlNode> GetNode(HtmlDocument html, string className)
+        protected List<HtmlNode> GetNode(HtmlDocument html, string descendantsNodeName, string className)
         {
             var node = new List<HtmlNode>();
-            return node = html.DocumentNode.Descendants("ul")
+            return node = html.DocumentNode.Descendants(descendantsNodeName)
                     .Where(n => n.GetAttributeValue("class", "")
                     .StartsWith(className)).ToList();
         }
-
-        private List<HtmlNode> GetListFromNode(IList<HtmlNode> productsHtml, string descendantsNodeName, string attributeName, string attributeValue)
+        protected List<HtmlNode> GetListFromNode(IList<HtmlNode> productsHtml, string descendantsNodeName, string attributeName, string attributeValue)
         {
             var list = new List<HtmlNode>();
 
@@ -249,7 +161,7 @@ namespace Limalima.Backend.Components
                  .Equals(attributeValue)).ToList();
         }
 
-        private IList<string> GetProductsLinksToList(IList<HtmlNode> productsList)
+        protected IList<string> GetProductsLinksToList(IList<HtmlNode> productsList)
         {
             var productsLinkList = new List<string>();
             foreach (var productItem in productsList)
@@ -260,8 +172,7 @@ namespace Limalima.Backend.Components
 
             return productsLinkList;
         }
-
-        private string GetProductChoosenElemenText(HtmlDocument productHtml, string nodeName, string attributeName, string attributeValue)
+        protected string GetProductChoosenElementText(HtmlDocument productHtml, string nodeName, string attributeName, string attributeValue)
         {
             var productList = productHtml.DocumentNode.Descendants(nodeName).
                 Where(n => n.GetAttributeValue(attributeName, "")
@@ -271,28 +182,13 @@ namespace Limalima.Backend.Components
             return product.InnerHtml.Trim();
         }
 
-        private string GetProductName(HtmlDocument productHtml)
-        {
-            var name = GetProductChoosenElemenText(productHtml, "h1", "class", "wt-text-body-03 wt-line-height-tight wt-break-word wt-mb-xs-1");
+        public abstract Task<IList<string>> GetProductsLinks(string profileUrl);
+        public abstract string GetProductMaterials(HtmlDocument productHtml);
+        public abstract string GetProductCategories(HtmlDocument productHtml);
+        public abstract List<string> GetProductPhotosUrl(HtmlDocument productHtml);
+        public abstract string GetProductName(HtmlDocument productHtml);
+        public abstract decimal GetProductPrice(HtmlDocument productHtml);
+        public abstract string GetProductDescription(HtmlDocument productHtml);
 
-            return name;
-        }
-
-        private Decimal GetProductPrice(HtmlDocument productHtml)
-        {
-            var priceAsString = GetProductChoosenElemenText(productHtml, "p", "class", "wt-text-title-03 wt-mr-xs-2");
-            priceAsString = Regex.Replace(priceAsString, "[^0-9,]", "");
-            var result = Decimal.Parse(priceAsString);
-
-            return result;
-        }
-
-        private string GetProductDescription(HtmlDocument productHtml)
-        {
-            var description = GetProductChoosenElemenText(productHtml, "p", "class", "wt-text-body-01 wt-break-word");
-
-            return Regex.Replace(description, @"<a\b[^>]+>([^<]*(?:(?!</a)<[^<]*)*)</a>", "$1");
-        }
     }
 }
-

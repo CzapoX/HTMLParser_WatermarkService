@@ -1,5 +1,6 @@
 using Limalima.Backend.Azure;
 using Limalima.Backend.Components;
+using Limalima.Backend.Components.ParsingClient;
 using Limalima.Backend.Validation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

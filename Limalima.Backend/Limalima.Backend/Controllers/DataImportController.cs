@@ -1,4 +1,4 @@
-﻿using Limalima.Backend.Components;
+﻿using Limalima.Backend.Components.ParsingClient;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
