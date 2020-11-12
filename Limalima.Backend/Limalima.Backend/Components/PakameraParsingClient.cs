@@ -10,19 +10,14 @@ using System.Threading.Tasks;
 
 namespace Limalima.Backend.Components
 {
-    public interface IParsingClient
+    public class PakameraParsingClient : IParsingClient
     {
-        Task<IList<Art>> GetArtsFromUser(string url);
-    }
+        //https://www.pakamera.pl/bambaki przykladowy profil uzytkownika
 
-    public class EtsyParsingClient : IParsingClient
-    {
-        //https://www.etsy.com/pl/shop/GracePersonalized przykladowy profil uzytkownika
-
-        private readonly ILogger<EtsyParsingClient> _logger;
+        private readonly ILogger<PakameraParsingClient> _logger;
         private readonly IWatermarkService _watermarkService;
 
-        public EtsyParsingClient(ILogger<EtsyParsingClient> logger, IWatermarkService watermarkService)
+        public PakameraParsingClient(ILogger<PakameraParsingClient> logger, IWatermarkService watermarkService)
         {
             _logger = logger;
             _watermarkService = watermarkService;
@@ -50,13 +45,17 @@ namespace Limalima.Backend.Components
             string url = profileUrl;
             List<IList<string>> productLinksList = new List<IList<string>>();
 
-            for (int index = 1; ; ++index)
+            for (int index = 0; ; ++index)
             {
-                url = profileUrl + "?page=" + index;
-                
+                if (index > 0)
+                {
+                    var previousPage = index - 1;
+                    url = profileUrl.Replace("-" + previousPage, "-" + index);
+                }
+
                 var pageHtml = await GetPageHtml(url);
-                var productsHtml = GetNode(pageHtml, "listing-cards");
-                var productsList = GetListFromNode(productsHtml, "data-shop-id");
+                var productsHtml = GetNode(pageHtml, "ul", "prod  lazy nextba clearfix");
+                var productsList = GetListFromNode(productsHtml, "li", "class", "prd");
                 var productsLink = GetProductsLinksToList(productsList);
 
                 if (productLinksList.Any(o => o.SequenceEqual(productsLink)))
@@ -65,7 +64,17 @@ namespace Limalima.Backend.Components
                 productLinksList.Add(productsLink);
             }
 
-            return productLinksList.SelectMany(l => l).Distinct().ToList();
+            var list = productLinksList.SelectMany(l => l).Distinct().ToList();
+            string finalLink;
+            IList<string> result = new List<string>();
+
+            foreach (var link in list)
+            {
+                finalLink = link.Insert(0, "https://www.pakamera.pl");
+                result.Add(finalLink);
+            }
+
+            return result;
         }
 
         public async Task<IList<HtmlDocument>> GetProductsHtml(IList<string> itemsLinksList)
@@ -116,35 +125,23 @@ namespace Limalima.Backend.Components
 
             return artList;
         }
-        public string GetProductMaterials(HtmlDocument productHtml)
-        {
-            var detailsNode = GetNode(productHtml, "wt-text-body-01");
-
-            if (detailsNode.Count == 0)
-                return "";
-
-            var detailList = GetListFromNode(detailsNode, "class");
-            var materials = "";
-
-            foreach (var detailText in detailList)
-            {
-                var productDetail = detailText.InnerText.Trim();
-
-                if (productDetail.Contains("Materiały:"))
-                    materials = productDetail.Replace("Materiały: ", "");
-            }
-
-            return materials.Replace(",", ";");
-        }
 
         public string GetProductCategories(HtmlDocument productHtml)
         {
-            var categoriesNode = GetNode(productHtml, "wt-action-group wt-list-inline wt-mb-xs-2");
 
-            var categorylist = GetListFromNode(categoriesNode, "class", "wt-action-group__item-container");
+            var categoriesNode = GetNode(productHtml, "div", "tagcld");
+
+            var categoryList = new List<HtmlNode>();
+
+            categoryList = categoriesNode[0].Descendants("a")
+                 .Where(n => n.GetAttributeValue("title", "")
+                 .Any()
+                ).ToList();
+
+
             var categoriesImported = new List<string>();
 
-            foreach (var category in categorylist)
+            foreach (var category in categoryList)
             {
                 var categoryText = category.InnerText.Trim();
 
@@ -157,24 +154,18 @@ namespace Limalima.Backend.Components
 
         public List<string> GetProductPhotosUrl(HtmlDocument productHtml)
         {
-            var photosNode = GetNode(productHtml, "wt-list-unstyled wt-overflow-hidden wt-position-relative carousel-pane-list");
+            var photosNode = GetNode(productHtml, "div", "slide-main");
 
-            var photoList = GetListFromNode(photosNode, "data-carousel-pane", "");
+            var photoList = GetListFromNode(photosNode, "a", "class", "");
+
             var photosUrl = new List<string>();
 
             foreach (var photo in photoList)
-            {
-                var photoNode = photo.Descendants("img");
-                if (photoNode != null)
-                {
-                    var photoUrl = photoNode.FirstOrDefault()?.GetAttributeValue("data-src", "");
-
-                    if (String.IsNullOrWhiteSpace(photoUrl))
-                        photoUrl = photoNode.FirstOrDefault()?.GetAttributeValue("src", "");
+            { 
+                    var photoUrl = photo.GetAttributeValue("href", "");
 
                     if (!String.IsNullOrWhiteSpace(photoUrl))
                         photosUrl.Add(photoUrl);
-                }
 
             }
 
@@ -232,19 +223,19 @@ namespace Limalima.Backend.Components
             }
         }
 
-        private List<HtmlNode> GetNode(HtmlDocument html, string className)
+        private List<HtmlNode> GetNode(HtmlDocument html, string descendantsNodeName, string className)
         {
             var node = new List<HtmlNode>();
-            return node = html.DocumentNode.Descendants("ul")
+            return node = html.DocumentNode.Descendants(descendantsNodeName)
                     .Where(n => n.GetAttributeValue("class", "")
                     .StartsWith(className)).ToList();
         }
 
-        private List<HtmlNode> GetListFromNode(IList<HtmlNode> productsHtml, string attributeName, string attributeValue = "")
+        private List<HtmlNode> GetListFromNode(IList<HtmlNode> productsHtml, string descendantsNodeName, string attributeName, string attributeValue)
         {
             var list = new List<HtmlNode>();
 
-            return list = productsHtml[0].Descendants("li")
+            return list = productsHtml[0].Descendants(descendantsNodeName)
                  .Where(n => n.GetAttributeValue(attributeName, "")
                  .Equals(attributeValue)).ToList();
         }
@@ -261,7 +252,7 @@ namespace Limalima.Backend.Components
             return productsLinkList;
         }
 
-        private string GetProductChoosenElemenText(HtmlDocument productHtml, string nodeName, string attributeName, string attributeValue)
+        private string GetProductChoosenElementText(HtmlDocument productHtml, string nodeName, string attributeName, string attributeValue)
         {
             var productList = productHtml.DocumentNode.Descendants(nodeName).
                 Where(n => n.GetAttributeValue(attributeName, "")
@@ -273,15 +264,17 @@ namespace Limalima.Backend.Components
 
         private string GetProductName(HtmlDocument productHtml)
         {
-            var name = GetProductChoosenElemenText(productHtml, "h1", "class", "wt-text-body-03 wt-line-height-tight wt-break-word wt-mb-xs-1");
+            var name = GetProductChoosenElementText(productHtml, "h1", "", "");
 
             return name;
         }
 
         private Decimal GetProductPrice(HtmlDocument productHtml)
         {
-            var priceAsString = GetProductChoosenElemenText(productHtml, "p", "class", "wt-text-title-03 wt-mr-xs-2");
-            priceAsString = Regex.Replace(priceAsString, "[^0-9,]", "");
+            var priceNodeText = GetProductChoosenElementText(productHtml, "span", "class", "ppp bnvalue");
+            var priceAsString = Regex.Replace(priceNodeText, "[^0-9.,]", "");
+            priceAsString = priceAsString.Remove(0, priceAsString.Length / 2);
+
             var result = Decimal.Parse(priceAsString);
 
             return result;
@@ -289,10 +282,14 @@ namespace Limalima.Backend.Components
 
         private string GetProductDescription(HtmlDocument productHtml)
         {
-            var description = GetProductChoosenElemenText(productHtml, "p", "class", "wt-text-body-01 wt-break-word");
+            var description = GetProductChoosenElementText(productHtml, "span", "class", "ades");
 
             return Regex.Replace(description, @"<a\b[^>]+>([^<]*(?:(?!</a)<[^<]*)*)</a>", "$1");
         }
+
+        private string GetProductMaterials(HtmlDocument productHtml)
+        {
+            return "";
+        }
     }
 }
-
