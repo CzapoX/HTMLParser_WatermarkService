@@ -1,9 +1,11 @@
 using Limalima.Backend.Azure;
 using Limalima.Backend.Components;
 using Limalima.Backend.Components.ParsingClient;
+using Limalima.Backend.Data;
 using Limalima.Backend.Validation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,6 +24,11 @@ namespace Limalima.Backend
         {
             var mvc = services.AddControllersWithViews();
             mvc.AddRazorRuntimeCompilation();
+
+            var sqlConnectionString = Configuration.GetConnectionString("Limalima-Database");
+
+            services.AddDbContext<ArtDbContext>(options => options.UseNpgsql(sqlConnectionString),
+                ServiceLifetime.Transient);
 
             services.AddScoped<IImageValidator, ImageValidator>();
             services.AddScoped<IAzureImageUploadComponent, AzureImageUploadComponent>();

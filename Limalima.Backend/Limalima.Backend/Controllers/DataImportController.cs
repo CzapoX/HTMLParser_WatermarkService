@@ -1,7 +1,7 @@
 ﻿using Limalima.Backend.Components;
 using Limalima.Backend.Components.ParsingClient;
+using Limalima.Backend.Data;
 using Microsoft.AspNetCore.Mvc;
-using Serilog;
 using System.Threading.Tasks;
 
 namespace Limalima.Backend.Controllers
@@ -9,9 +9,12 @@ namespace Limalima.Backend.Controllers
     public class DataImportController : Controller
     {
         private readonly IWatermarkService _watermarkService;
-        public DataImportController(IWatermarkService watermarkService)
+        private readonly ArtDbContext _context;
+
+        public DataImportController(IWatermarkService watermarkService, ArtDbContext context)
         {
             _watermarkService = watermarkService;
+            _context = context;
         }
 
         public IActionResult Index()
@@ -43,6 +46,10 @@ namespace Limalima.Backend.Controllers
             if (_parsingClient != null)
             {
                 var artList = await _parsingClient.GetArtsFromUser(url);
+                foreach (var art in artList)
+                    await _context.AddAsync(art);
+                
+                var success = await _context.SaveChangesAsync() > 0;
             }
 
             return RedirectToAction("Index");

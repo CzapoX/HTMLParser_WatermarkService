@@ -1,11 +1,59 @@
-﻿Pakamera import tagów
-
----
+﻿---
 Zapis Art do bazy 
-Obróbka danych w bazie (osoby exe)
 
 
-Watermark (16.11 najczesniej, mozeliwe ze w limalima kodzie)
+
+Watermark (https://git.gemotial.com/systems/limalima-up2020/issues/5)
 -----
 Zapisywane obrazek powinien byc automatycznie zmieniany na kwadrat np. 512x512
 tło po zmianie powinno byc wypelnione jednolitym kolorem (na podstawie kodu z funkcji 'GetImageBorder').
+
+
+
+
+
+
+
+pobieranie koloru bordera
+
+private Rgba32 GetImageBorder(Image image)
+{
+int samplesStepX = 20;
+int samplesStepY = 20;
+        if (image.Width < (samplesStepX / 2))
+        {
+            samplesStepX = (image.Width / 2) + 1;
+        }
+
+        if (image.Height < (samplesStepY / 2))
+        {
+            samplesStepY = (image.Height / 2) + 1;
+        }
+
+        int r = 0, g = 0, b = 0, count = 0;
+
+        for (int x = samplesStepX / 2; x < image.Width; x += samplesStepX / 2)
+        {
+            for (int y = samplesStepY / 2; y < image.Height; y += samplesStepY / 2)
+            {
+                if (y <= image.Height - 1 && x <= image.Width - 1)
+                {
+                    var pixel = image[x, y];
+                    r += pixel.R;
+                    g += pixel.G;
+                    b += pixel.B;
+                    count++;
+                }
+            }
+        }
+
+        if (count == 0)
+        {
+            count = 1;
+        }
+
+        return new Rgba32((byte)(r / (float)count), (byte)(g / (float)count), (byte)(b / (float)count));
+    }
+
+    505 418136
+    794 227 915

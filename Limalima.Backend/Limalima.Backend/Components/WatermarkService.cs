@@ -5,7 +5,9 @@ using Limalima.Backend.Validation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -61,14 +63,59 @@ namespace Limalima.Backend.Components
             try
             {
                 var fileName = Guid.NewGuid() + Path.GetExtension(fileDirectory);
-                MagickImage image = AddWatermark(fileDirectory);
-                return await UploadToAzure(fileName, image);
+                var image = GetImage(fileDirectory);
+                var dominantColourCode = GetDominantColor(image);
+
+                AddWatermark(image);
+                ResizeImage(image);
+
+                using var finalImage = new MagickImage(new MagickColor(dominantColourCode), 500, 500);
+                finalImage.Composite(image, Gravity.Center, CompositeOperator.Over);
+
+                return await UploadToAzure(fileName, finalImage);
             }
             catch (Exception er)
             {
                 _logger.LogError(er, "WatermarkImageAndUploadToAzure error");
                 return "";
             }
+        }
+
+        private string GetDominantColor(MagickImage image)
+        {
+            Dictionary<IMagickColor<ushort>, int> dict = image.Histogram();
+
+            const int colorsToCompare = 80;
+            int r = 0;
+            int g = 0;
+            int b = 0;
+
+            var sortedDict = (from entry in dict orderby entry.Value descending select entry)
+                .ToDictionary(pair => pair.Key, pair => pair.Value).Take(colorsToCompare);
+
+            foreach (var entry in sortedDict)
+            {
+                r += entry.Key.R;
+                g += entry.Key.G;
+                b += entry.Key.B;
+            }
+
+            r /= colorsToCompare;
+            g /= colorsToCompare;
+            b /= colorsToCompare;
+
+
+            //var keyOfMaxValue = dict.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+            //var keyOfSecondValue = dict.Aggregate((x, y) => x.Value > y.Value && x.Key != keyOfMaxValue ? x : y).Key;
+            //var keyOfThirdValue = dict.Aggregate((x, y) => x.Value > y.Value && (x.Key != keyOfMaxValue && x.Key != keyOfSecondValue) ? x : y).Key;
+
+            //var r = (keyOfMaxValue.R + keyOfSecondValue.R + keyOfThirdValue.R) / 3;
+            //var g = (keyOfMaxValue.G + keyOfSecondValue.G + keyOfThirdValue.G) / 3;
+            //var b = (keyOfMaxValue.B + keyOfSecondValue.B + keyOfThirdValue.B) / 3;
+
+
+            var dominantColourCode = "#" + r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
+            return dominantColourCode;
         }
 
         public async Task DownloadImageAsync(AnnouceViewModel model, string photoUrl)
@@ -85,24 +132,39 @@ namespace Limalima.Backend.Components
             }
         }
 
-        private MagickImage AddWatermark(string fileDirectory)
+        private void AddWatermark(MagickImage image)
         {
-            var image = new MagickImage(fileDirectory);
-
             using (var watermark = new MagickImage(_environment.WebRootPath + "/Images/watermark.png"))
             {
                 // Draw the watermark in the bottom right corner
                 image.Composite(watermark, Gravity.Southeast, CompositeOperator.Over);
             }
+        }
+
+        private MagickImage GetImage(string fileDirectory)
+        {
+            var image = new MagickImage(fileDirectory);
             return image;
         }
 
+        private void ResizeImage(MagickImage image, int width = 500, int height = 500)
+        {
+            var size = new MagickGeometry(width, height);
+
+            image.Resize(size);
+        }
+
+
         private async Task<string> UploadToAzure(string fileName, MagickImage image)
         {
-            using MemoryStream ms = new MemoryStream();
-            image.Write(ms);
-            ms.Position = 0;
-            return await _azureImageUpload.UploadFileToStorage(ms, fileName);
+            using (MemoryStream ms = new MemoryStream())
+            {
+                image.Format = MagickFormat.Png;
+                image.Write(ms);
+                ms.Position = 0;
+
+                return await _azureImageUpload.UploadFileToStorage(ms, fileName);
+            }
         }
 
         public void ClearTempFolder(string[] files)

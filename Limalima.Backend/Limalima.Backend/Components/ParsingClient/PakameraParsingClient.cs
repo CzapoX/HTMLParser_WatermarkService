@@ -64,7 +64,7 @@ namespace Limalima.Backend.Components
 
         public override string GetProductCategories(HtmlDocument productHtml)
         {
-            List<HtmlNode> categoryList = GetCategoryList(productHtml);
+            List<HtmlNode> categoryList = GetItemsByClassName(productHtml, "tagcld");
 
             var categoriesImported = new List<string>();
 
@@ -86,15 +86,16 @@ namespace Limalima.Backend.Components
             return joined;
         }
 
-        private List<HtmlNode> GetCategoryList(HtmlDocument productHtml)
+        private List<HtmlNode> GetItemsByClassName(HtmlDocument productHtml, string className)
         {
-            var categoriesNode = GetNode(productHtml, "div", "tagcld");
+            var itemsNone = GetNode(productHtml, "div", className);
 
-            var categoryList = categoriesNode[0].Descendants("a")
+            var items = itemsNone[0].Descendants("a")
                   .Where(n => n.GetAttributeValue("title", "")
                   .Any()
                  ).ToList();
-            return categoryList;
+
+            return items;
         }
 
         public override List<string> GetProductPhotosUrl(HtmlDocument productHtml)
@@ -144,7 +145,7 @@ namespace Limalima.Backend.Components
 
         protected override string GetProductTags(HtmlDocument productHtml)
         {
-            var categoryList = GetCategoryList(productHtml);
+            var categoryList = GetItemsByClassName(productHtml, "tagcld");
 
             var tagsImported = new List<string>();
 

@@ -1,5 +1,4 @@
 ﻿using HtmlAgilityPack;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +11,7 @@ namespace Limalima.Backend.Components.ParsingClient
     {
         //https://www.etsy.com/pl/shop/GracePersonalized przykladowy profil uzytkownika
 
-
-        public EtsyParsingClient(IWatermarkService watermarkService) : base( watermarkService)
-        {
-        }
-
+        public EtsyParsingClient(IWatermarkService watermarkService) : base(watermarkService) { }
 
         public override async Task<IList<string>> GetProductsLinks(string profileUrl)
         {
@@ -65,17 +60,11 @@ namespace Limalima.Backend.Components.ParsingClient
         public override string GetProductCategories(HtmlDocument productHtml)
         {
             var categoriesNode = GetNode(productHtml, "ul", "wt-action-group wt-list-inline wt-mb-xs-2");
-
             var categorylist = GetListFromNode(categoriesNode, "li", "class", "wt-action-group__item-container");
-            var categoriesImported = new List<string>();
 
-            foreach (var category in categorylist)
-            {
-                var categoryText = category.InnerText.Trim();
-
-                categoriesImported.Add(categoryText);
-            }
-            string joined = string.Join(';', categoriesImported);
+            string joined = categorylist
+                .Select(c => c.InnerText.Trim())
+                .Aggregate(String.Empty, (current, next) => current + ";" + next);
 
             return joined;
         }
@@ -100,7 +89,6 @@ namespace Limalima.Backend.Components.ParsingClient
                     if (!string.IsNullOrWhiteSpace(photoUrl))
                         photosUrl.Add(photoUrl);
                 }
-
             }
             return photosUrl;
         }
