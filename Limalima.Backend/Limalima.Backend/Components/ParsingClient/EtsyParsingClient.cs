@@ -15,7 +15,7 @@ namespace Limalima.Backend.Components.ParsingClient
 
         public override async Task<IList<string>> GetProductsLinks(string profileUrl)
         {
-            string url = profileUrl;
+            string url = PrepareEtsyLink(profileUrl);
             List<IList<string>> productLinksList = new List<IList<string>>();
 
             for (int index = 1; ; ++index)
@@ -120,6 +120,15 @@ namespace Limalima.Backend.Components.ParsingClient
         {
             return "";
         }
+
+        public string PrepareEtsyLink(string url)
+        {
+            int index = url.IndexOf("?");
+            if (index > 0)
+                url = url.Substring(0, index);
+            return url;
+        }
+
     }
 }
 

@@ -4,7 +4,6 @@ using Limalima.Backend.Components.ParsingClient;
 using Limalima.Backend.Models;
 using Limalima.Backend.Validation;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Moq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,12 +17,12 @@ namespace Limalima.Backend.Tests
         private readonly IConfiguration configuration;
         private readonly Dictionary<string, string> configurationSettings = new Dictionary<string, string>
         {
-            {"FileSizeLimit", "5097152"},          
+            {"FileSizeLimit", "5097152"},
         };
 
         private readonly EtsyParsingClient sut;
         private readonly string sampleEtsyUserUrl = "https://www.etsy.com/shop/RedVesselDesigns";
-
+        private string sampleEtsyUserUrlThatNeedTrim = "https://www.etsy.com/shop/BusyPuzzle?ref=simple-shop-header-name&listing_id=862159716";
         private readonly string singleEtsyProductUrl = "https://www.etsy.com/pl/listing/873965045/custom-initial-necklace-script-initial";
 
         private readonly List<string> sampleEtsyProductsUrl = new List<string>
@@ -42,7 +41,7 @@ namespace Limalima.Backend.Tests
             Mock<IAzureImageUploadComponent> azureUploadComponent = new Mock<IAzureImageUploadComponent>();
             Mock<IWatermarkService> watermarkService = new Mock<IWatermarkService>();
 
-            watermarkService.Setup(e=>e.WatermarkImageAndUploadToAzure(It.IsAny<string>())).ReturnsAsync("Url");
+            watermarkService.Setup(e => e.WatermarkImageAndUploadToAzure(It.IsAny<string>())).ReturnsAsync("Url");
             watermarkService.Setup(e => e.GetFiles(It.IsAny<AnnouceViewModel>())).Returns(new string[] { "Directory" });
 
             sut = new EtsyParsingClient(watermarkService.Object);
@@ -123,6 +122,16 @@ namespace Limalima.Backend.Tests
             var results = sut.GetProductPhotosUrl(itemHtml);
 
             Assert.NotEmpty(results);
+        }
+
+        [Fact]
+        public void ShouldRemoveAllCharactersAfterQuestionMark()
+        {
+            var url = sut.PrepareEtsyLink(sampleEtsyUserUrlThatNeedTrim);
+
+            Assert.DoesNotContain("?ref", url);
+            Assert.NotEmpty(url);
+            Assert.Contains("etsy", url);
         }
     }
 }

@@ -31,6 +31,7 @@ namespace Limalima.Backend
                 ServiceLifetime.Transient);
 
             services.AddScoped<IImageValidator, ImageValidator>();
+            services.AddScoped<IDataImportLinkValidator, DataImportLinkValidator>();
             services.AddScoped<IAzureImageUploadComponent, AzureImageUploadComponent>();
             services.AddScoped<IWatermarkService, WatermarkService>();
         }

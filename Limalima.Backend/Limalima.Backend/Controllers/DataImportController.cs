@@ -1,6 +1,7 @@
 ﻿using Limalima.Backend.Components;
 using Limalima.Backend.Components.ParsingClient;
 using Limalima.Backend.Data;
+using Limalima.Backend.Validation;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -9,11 +10,13 @@ namespace Limalima.Backend.Controllers
     public class DataImportController : Controller
     {
         private readonly IWatermarkService _watermarkService;
+        private readonly IDataImportLinkValidator _linkValidator;
         private readonly ArtDbContext _context;
 
-        public DataImportController(IWatermarkService watermarkService, ArtDbContext context)
+        public DataImportController(IWatermarkService watermarkService, IDataImportLinkValidator linkValidator, ArtDbContext context)
         {
             _watermarkService = watermarkService;
+            _linkValidator = linkValidator;
             _context = context;
         }
 
@@ -27,6 +30,10 @@ namespace Limalima.Backend.Controllers
         public async Task<IActionResult> ImportData(string url, string importSource)
         {
             IParsingClient _parsingClient = null;
+
+            if (!_linkValidator.ValidateLink(url, importSource))
+                return BadRequest();
+
             switch (importSource)
             {
                 case "etsy":

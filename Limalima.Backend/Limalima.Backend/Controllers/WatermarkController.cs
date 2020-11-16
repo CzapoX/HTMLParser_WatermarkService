@@ -41,7 +41,7 @@ namespace Limalima.Backend.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadAjax(FileUploadViewModel model)
         {
-            if (_watermarkService.ValidateFile(model))
+            if (!_watermarkService.ValidateFile(model))
                 return BadRequest();
 
             await _watermarkService.UploadImageToTempFolder(model);

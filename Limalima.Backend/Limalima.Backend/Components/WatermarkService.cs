@@ -104,16 +104,6 @@ namespace Limalima.Backend.Components
             g /= colorsToCompare;
             b /= colorsToCompare;
 
-
-            //var keyOfMaxValue = dict.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
-            //var keyOfSecondValue = dict.Aggregate((x, y) => x.Value > y.Value && x.Key != keyOfMaxValue ? x : y).Key;
-            //var keyOfThirdValue = dict.Aggregate((x, y) => x.Value > y.Value && (x.Key != keyOfMaxValue && x.Key != keyOfSecondValue) ? x : y).Key;
-
-            //var r = (keyOfMaxValue.R + keyOfSecondValue.R + keyOfThirdValue.R) / 3;
-            //var g = (keyOfMaxValue.G + keyOfSecondValue.G + keyOfThirdValue.G) / 3;
-            //var b = (keyOfMaxValue.B + keyOfSecondValue.B + keyOfThirdValue.B) / 3;
-
-
             var dominantColourCode = "#" + r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
             return dominantColourCode;
         }
@@ -178,7 +168,7 @@ namespace Limalima.Backend.Components
         }
         public bool ValidateFile(FileUploadViewModel file)
         {
-            return file.File == null || !_imageValidator.ValidateFile(file.File);
+            return !(file.File == null || !_imageValidator.ValidateFile(file.File));
         }
 
         private void CreateFoldersIfNeeded()
