@@ -7,11 +7,11 @@ namespace Limalima.Backend.Tests
     {
         private readonly IDataImportLinkValidator sut;
         
-        private readonly string EtsyLink = "https://www.etsy.com/shop/BusyPuzzle";
-        private readonly string PakameraLink = "https://www.pakamera.pl/pookys-world-0_s12297558.htm";
-        private readonly string PakameraProductLink = "https://www.pakamera.pl/do-ciala-inne-the-bikini-body-formula-nr2320329.htm";
-        private readonly string EtsyProductLink = "https://www.etsy.com/listing/512037342/first-birthday-gift-personalized-cupcake?ref=hp_rv-2";
-        private readonly string IncorrectLink = "https://limalima.pl/";
+        private const string EtsyLink = "https://www.etsy.com/shop/BusyPuzzle";
+        private const string PakameraLink = "https://www.pakamera.pl/pookys-world-0_s12297558.htm";
+        private const string PakameraProductLink = "https://www.pakamera.pl/do-ciala-inne-the-bikini-body-formula-nr2320329.htm";
+        private const string EtsyProductLink = "https://www.etsy.com/listing/512037342/first-birthday-gift-personalized-cupcake?ref=hp_rv-2";
+        private const string IncorrectLink = "https://limalima.pl/";
 
 
         public DataImportLinkValidatorIntegrationTests()
@@ -22,7 +22,7 @@ namespace Limalima.Backend.Tests
         [Fact]
         public void ShouldPassForEtsyLink()
         {
-            var result = sut.ValidateLink(EtsyLink, "etsy");
+            var result = sut.ValidateProfileLink(EtsyLink, "etsy");
 
             Assert.True(result);
         }
@@ -30,7 +30,7 @@ namespace Limalima.Backend.Tests
         [Fact]
         public void ShouldPassForPakameraLink()
         {
-            var result = sut.ValidateLink(PakameraLink, "pakamera");
+            var result = sut.ValidateProfileLink(PakameraLink, "pakamera");
             
             Assert.True(result);
         }
@@ -38,26 +38,31 @@ namespace Limalima.Backend.Tests
         [Fact]
         public void ShouldPassForWrongImportSource()
         {
-            var result1 = sut.ValidateLink(PakameraLink, "etsy");
-            var result2 = sut.ValidateLink(EtsyLink, "pakamera");
+            var result1 = sut.ValidateProfileLink(PakameraLink, "etsy");
+            var result2 = sut.ValidateProfileLink(EtsyLink, "pakamera");
 
             Assert.False(result1);
             Assert.False(result2);
+        }
+
+        [Theory]
+        [InlineData(PakameraProductLink, "pakamera")]
+        [InlineData(EtsyProductLink, "etsy")]
+        public void ShouldFailBecauseOfProvidingProductLinkinsteadOfProfile(string link, string source)
+        {
+            var result1 = sut.ValidateProfileLink(link, source);
+
+            Assert.False(result1);
         }
 
         [Fact]
         public void ShouldPassForWrongLink()
         {
-            var result1 = sut.ValidateLink(PakameraProductLink, "pakamera");
-            var result2 = sut.ValidateLink(EtsyProductLink, "etsy");
-            var result3 = sut.ValidateLink(IncorrectLink, "pakamera");
-            var result4 = sut.ValidateLink(IncorrectLink, "etsy");
+            var result1 = sut.ValidateProfileLink(IncorrectLink, "pakamera");
+            var result2 = sut.ValidateProfileLink(IncorrectLink, "etsy");
 
             Assert.False(result1);
             Assert.False(result2);
-            Assert.False(result3);
-            Assert.False(result4);
         }
-
     }
 }

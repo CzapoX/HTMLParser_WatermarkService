@@ -66,6 +66,7 @@ namespace Limalima.Backend.Components
                 var image = GetImage(fileDirectory);
                 var dominantColourCode = GetDominantColor(image);
 
+                //watermark powinien być dodawany na finalImage
                 AddWatermark(image);
                 ResizeImage(image);
 
@@ -83,28 +84,44 @@ namespace Limalima.Backend.Components
 
         private string GetDominantColor(MagickImage image)
         {
-            Dictionary<IMagickColor<ushort>, int> dict = image.Histogram();
-
-            const int colorsToCompare = 80;
-            int r = 0;
-            int g = 0;
-            int b = 0;
-
-            var sortedDict = (from entry in dict orderby entry.Value descending select entry)
-                .ToDictionary(pair => pair.Key, pair => pair.Value).Take(colorsToCompare);
-
-            foreach (var entry in sortedDict)
+            var pixels = image.GetPixels();
+            int samplesStepX = 20;
+            int samplesStepY = 20;
+            if (image.Width < (samplesStepX / 2))
             {
-                r += entry.Key.R;
-                g += entry.Key.G;
-                b += entry.Key.B;
+                samplesStepX = (image.Width / 2) + 1;
             }
 
-            r /= colorsToCompare;
-            g /= colorsToCompare;
-            b /= colorsToCompare;
+            if (image.Height < (samplesStepY / 2))
+            {
+                samplesStepY = (image.Height / 2) + 1;
+            }
 
-            var dominantColourCode = "#" + r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
+            int r = 0, g = 0, b = 0, count = 0;
+
+            for (int x = samplesStepX / 2; x < image.Width; x += samplesStepX / 2)
+            {
+                for (int y = samplesStepY / 2; y < image.Height; y += samplesStepY / 2)
+                {
+                    if (y <= image.Height - 1 && x <= image.Width - 1)
+                    {
+                        var pixel = pixels[x, y];
+                        var rgba = pixel.ToColor();
+                        r += rgba.R;
+                        g += rgba.G;
+                        b += rgba.B;
+                        count++;
+                    }
+                }
+            }
+
+            if (count == 0)
+            {
+                count = 1;
+            }
+
+            var dominantColourCode = "#" + ((int)(r / (float)count)).ToString("X2") + ((int)(g / (float)count)).ToString("X2") + ((int)(b / (float)count)).ToString("X2");
+
             return dominantColourCode;
         }
 

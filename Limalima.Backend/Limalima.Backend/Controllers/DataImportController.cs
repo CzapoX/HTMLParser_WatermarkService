@@ -31,7 +31,7 @@ namespace Limalima.Backend.Controllers
         {
             IParsingClient _parsingClient = null;
 
-            if (!_linkValidator.ValidateLink(url, importSource))
+            if (!_linkValidator.ValidateProfileLink(url, importSource))
                 return BadRequest();
 
             switch (importSource)
@@ -43,12 +43,6 @@ namespace Limalima.Backend.Controllers
                     _parsingClient = new PakameraParsingClient(_watermarkService);
                     break;
             }
-
-            //TODO dodac walidacje adresu dla konkretnego importera
-            //if (!_parsingClient.IsValidUrl(url))
-            //{
-            //    return RedirectToAction("Index");
-            //}
 
             if (_parsingClient != null)
             {

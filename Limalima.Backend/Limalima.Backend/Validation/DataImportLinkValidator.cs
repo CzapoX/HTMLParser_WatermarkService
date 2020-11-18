@@ -1,26 +1,23 @@
-﻿using System;
-
-namespace Limalima.Backend.Validation
+﻿namespace Limalima.Backend.Validation
 {
-
     public interface IDataImportLinkValidator
     {
-        bool ValidateLink(string link, string importSource);
+        bool ValidateProfileLink(string link, string importSource);
     }
-
 
     public class DataImportLinkValidator : IDataImportLinkValidator
     {
-        public bool ValidateLink(string url, string importSource)
+        public bool ValidateProfileLink(string url, string importSource)
         {
-            var result = false;
-
-            if (importSource == "etsy")
-                result = ValidateEtsyLink(url);
-            if (importSource == "pakamera")
-                result = ValidatePakameraLink(url);
-
-            return result;
+            switch (importSource)
+            {
+                case "etsy":
+                    return ValidateEtsyLink(url);
+                case "pakamera":
+                    return ValidatePakameraLink(url);
+                default:
+                    return false;
+            }
         }
 
         private bool ValidatePakameraLink(string url)
@@ -30,7 +27,7 @@ namespace Limalima.Backend.Validation
 
         private bool ValidateEtsyLink(string url)
         {
-            return url.Contains("etsy.com/") && url.Contains("shop/");
+            return url.Contains("etsy.com/") && url.Contains("/shop/");
         }
     }
 }
