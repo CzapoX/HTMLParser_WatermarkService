@@ -22,7 +22,7 @@ namespace Limalima.Backend.Tests
         private readonly PakameraParsingClient sut;
         private readonly string samplePakameraUserUrl = "https://www.pakamera.pl/pookys-world-0_s12297558.htm";
 
-        private readonly string singlePakameraProductUrl = "https://www.pakamera.pl/moda-t-shirty-unisex-t-shirt-black-gold-snb-longer-nr2738670.htm";
+        private readonly string singlePakameraProductUrl = "https://www.pakamera.pl/moda-t-shirty-unisex-t-shirt-pls-black-longer-length-nr2738690.htm";
 
         private readonly List<string> samplePakameraProductsUrl = new List<string>
         {

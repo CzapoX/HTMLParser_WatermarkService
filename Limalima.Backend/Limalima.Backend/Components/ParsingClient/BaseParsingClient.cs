@@ -157,7 +157,7 @@ namespace Limalima.Backend.Components.ParsingClient
 
             return list = productsHtml[0].Descendants(descendantsNodeName)
                  .Where(n => n.GetAttributeValue(attributeName, "")
-                 .Equals(attributeValue)).ToList();
+                 .StartsWith(attributeValue)).ToList();
         }
 
         protected IList<string> GetProductsLinksToList(IList<HtmlNode> productsList)

@@ -110,9 +110,12 @@ namespace Limalima.Backend.Components
             {
                 var photoUrl = photo.GetAttributeValue("href", "");
 
-                if (!String.IsNullOrWhiteSpace(photoUrl))
+                if (!string.IsNullOrWhiteSpace(photoUrl))
+                {
+                    if (photoUrl.StartsWith("//"))
+                        photoUrl = "https:" + photoUrl;
                     photosUrl.Add(photoUrl);
-
+                }
             }
 
             return photosUrl;

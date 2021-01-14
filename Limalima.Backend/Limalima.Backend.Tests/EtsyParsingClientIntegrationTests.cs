@@ -27,9 +27,9 @@ namespace Limalima.Backend.Tests
 
         private readonly List<string> sampleEtsyProductsUrl = new List<string>
         {
-            "https://www.etsy.com/listing/898773161/custom-handmade-vintage-style-coffee",
-            "https://www.etsy.com/listing/897583583/ceramic-bending-vase-minimalist-curve",
-            "https://www.etsy.com/pl/listing/746855885/dainty-name-choker-necklace-custom-name"
+            "https://www.etsy.com/pl/listing/924734514/black-baseball-cap-bad-to-the-bone?ref=shop_home_active_17",
+            "https://www.etsy.com/pl/listing/940398871/pink-sphynx-cat-wall-art-mystical-decor?ref=shop_home_active_1",
+            "https://www.etsy.com/pl/listing/825941394/llama-tote-bag-alpaca-shopping-bag-bag?ref=shop_home_active_23&pro=1"
         };
 
         public EtsyParsingClientIntegrationTests()
@@ -66,13 +66,10 @@ namespace Limalima.Backend.Tests
         [Fact]
         public async Task ShouldFetchArtList()
         {
-            //arrage
             var itemHtmlList = await sut.GetProductsHtml(sampleEtsyProductsUrl);
 
-            //act
             var results = await sut.CreateArtListAsync(itemHtmlList);
 
-            //assert
             Assert.NotEmpty(results);
 
             var sampleArt = results[0];

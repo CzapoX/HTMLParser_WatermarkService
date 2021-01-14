@@ -23,8 +23,8 @@ namespace Limalima.Backend.Components.ParsingClient
                 url = profileUrl + "?page=" + index;
 
                 var pageHtml = await GetPageHtml(url);
-                var productsHtml = GetNode(pageHtml, "ul", "listing-cards");
-                var productsList = GetListFromNode(productsHtml, "li", "data-shop-id", "");
+                var productsHtml = GetNode(pageHtml, "div", "responsive-listing-grid");
+                var productsList = GetListFromNode(productsHtml, "div", "class", "js-merch-stash-check-listing");
                 var productsLink = GetProductsLinksToList(productsList);
 
                 if (productLinksList.Any(o => o.SequenceEqual(productsLink)))
@@ -62,11 +62,18 @@ namespace Limalima.Backend.Components.ParsingClient
             var categoriesNode = GetNode(productHtml, "ul", "wt-action-group wt-list-inline wt-mb-xs-2");
             var categorylist = GetListFromNode(categoriesNode, "li", "class", "wt-action-group__item-container");
 
+            if (categorylist.Count > 2)
+            {
+                var mainCategory = categorylist[2];
+                categorylist.RemoveAt(2);
+                categorylist.Insert(0, mainCategory);
+            }
+
             string joined = categorylist
                 .Select(c => c.InnerText.Trim())
                 .Aggregate(String.Empty, (current, next) => current + ";" + next);
 
-            return joined;
+            return joined.TrimStart(';');
         }
 
         public override List<string> GetProductPhotosUrl(HtmlDocument productHtml)

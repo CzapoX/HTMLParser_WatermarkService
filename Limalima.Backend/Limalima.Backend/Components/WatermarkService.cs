@@ -5,9 +5,7 @@ using Limalima.Backend.Validation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -131,6 +129,7 @@ namespace Limalima.Backend.Components
             {
                 string filename = model.ImageTempId + "_" + Guid.NewGuid() + Path.GetExtension(photoUrl);
                 using WebClient client = new WebClient();
+                photoUrl = "https://imgadd.pakamera.net/i1/1/496/klocki-i-zabawki-drewniane-12475863_96959496.jpg";
                 await client.DownloadFileTaskAsync(new Uri(photoUrl), Path.Combine(tempImagesFolder, filename));
             }
             catch (Exception ex)
