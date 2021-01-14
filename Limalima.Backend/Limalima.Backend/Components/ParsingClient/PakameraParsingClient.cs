@@ -10,12 +10,7 @@ namespace Limalima.Backend.Components
 {
     public class PakameraParsingClient : BaseParsingClient
     {
-        //https://www.pakamera.pl/bambaki przykladowy profil uzytkownika        
 
-        //-([0-9]*)-t/s/[0-9]
-        //t - tag
-        //s - firma
-        //0-9 - kategoria
         public PakameraParsingClient(IWatermarkService watermarkService) : base(watermarkService)
         {
         }

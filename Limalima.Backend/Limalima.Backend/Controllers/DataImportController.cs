@@ -57,16 +57,3 @@ namespace Limalima.Backend.Controllers
         }
     }
 }
-
-//REF 2020-11-07
-/*
-     <a
-        class="display-inline-block listing-link"
-        data-listing-id="697558243"
-        data-palette-listing-image
-        href="https://www.etsy.com/pl/listing/697558243/custom-letter-necklace-vote-necklace?ref=shop_home_feat_1&pro=1"
-
-        target="etsy.697558243"
-        title="Custom Letter Necklace - Voxte Necklace - Initial Necklace - Mother&#39;s Day Gift - Personalized Jewelry - Bridesmaid Gift - #LTTRF149"
-    >
- */

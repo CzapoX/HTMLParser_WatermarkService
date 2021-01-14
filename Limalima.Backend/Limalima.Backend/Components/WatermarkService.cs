@@ -64,7 +64,6 @@ namespace Limalima.Backend.Components
                 var image = GetImage(fileDirectory);
                 var dominantColourCode = GetDominantColor(image);
 
-                //watermark powinien być dodawany na finalImage
                 AddWatermark(image);
                 ResizeImage(image);
 
@@ -129,7 +128,6 @@ namespace Limalima.Backend.Components
             {
                 string filename = model.ImageTempId + "_" + Guid.NewGuid() + Path.GetExtension(photoUrl);
                 using WebClient client = new WebClient();
-                photoUrl = "https://imgadd.pakamera.net/i1/1/496/klocki-i-zabawki-drewniane-12475863_96959496.jpg";
                 await client.DownloadFileTaskAsync(new Uri(photoUrl), Path.Combine(tempImagesFolder, filename));
             }
             catch (Exception ex)

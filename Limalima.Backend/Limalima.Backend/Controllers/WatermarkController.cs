@@ -48,14 +48,5 @@ namespace Limalima.Backend.Controllers
 
             return Ok();
         }
-
-
-
-        //public IActionResult GetImage(Guid imageTempId, int imageIndex)
-        //{
-        ////TODO
-        ////dla zapisaj oferty wgraj z azure
-        ////dla nowej wgraj z dysku
-        //}
     }
 }

@@ -69,13 +69,10 @@ namespace Limalima.Backend.Tests
         [Fact]
         public async Task ShouldFetchArtList()
         {
-            //arrage
             var itemHtmlList = await sut.GetProductsHtml(samplePakameraProductsUrl);
 
-            //act
             var results = await sut.CreateArtListAsync(itemHtmlList);
 
-            //assert
             Assert.NotEmpty(results);
 
             var sampleArt = results[0];
